@@ -36,10 +36,9 @@ def iter_layout(session_id: Any | None = None) -> Generator[CollectContext, None
             stack[-1] += 1
             yield content
     finally:
-        if len(stack) == 1:
+        stack.pop()
+        if not stack:
             bucket.pop(session_id, None)
-        else:
-            stack.pop()
 
 
 def global_collect(entity: TEntity) -> TEntity:

@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Callable, Generator, Protocol, TypeVar
+from typing import TYPE_CHECKING, Any, Callable, Protocol, TypeVar
+
 from typing_extensions import ParamSpec
 
 if TYPE_CHECKING:
     from .entity import BaseEntity
     from .fn.implement import FnImplementEntity
-    from .fn.record import FnOverloadHarvest
 
 
 T = TypeVar("T")
@@ -17,11 +17,9 @@ P1 = ParamSpec("P1")
 Q = TypeVar("Q", contravariant=True)
 InP = ParamSpec("InP")
 OutP = ParamSpec("OutP")
-inRC = TypeVar("inRC", covariant=True, bound=Callable)
-inTC = TypeVar("inTC", bound=Callable)
+CR = TypeVar("CR", covariant=True, bound=Callable)
+CT = TypeVar("CT", bound=Callable)
 TEntity = TypeVar("TEntity", bound="BaseEntity")
-CollectGen = Generator["FnOverloadHarvest", Any, None]
-CallGen = Generator["FnOverloadHarvest", None, R]
 
 
 class ImplementForCollect(Protocol[InP]):
@@ -42,7 +40,7 @@ class Detour(Protocol[R, OutP]):
         ...
 
 
-class ExplictImplementShape(Protocol[inRC]):
+class ExplictImplementShape(Protocol[CR]):
     @property
-    def implement_sample(self) -> inRC:
+    def implement_sample(self) -> CR:
         ...

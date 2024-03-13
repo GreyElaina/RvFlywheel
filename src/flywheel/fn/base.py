@@ -1,13 +1,17 @@
 from __future__ import annotations
 
-from typing import Any, Callable, Generator, Generic, Protocol, TypeVar
+from typing import TYPE_CHECKING, Any, Callable, Generic, Protocol, TypeVar
+
 from typing_extensions import Concatenate
 
 from ..entity import BaseEntity
 from ..globals import iter_layout
-from ..typing import R1, CallGen, CollectGen, Detour, InP, OutP, P, Q, R, WrapCall, inTC
-from .compose import EntitiesHarvest, FnCompose
+from ..typing import CR, CT, R1, Detour, InP, OutP, P, R, WrapCall
+from .compose import FnCompose
 from .implement import FnImplementEntity
+
+if TYPE_CHECKING:
+    from .record import FnRecord
 
 K = TypeVar("K")
 
@@ -25,26 +29,16 @@ class ComposeShape(Protocol[CCollect, CCall]):
         ...
 
 
-class SymCompose(Generic[inTC], FnCompose):
-    def call(self: SymCompose[Callable[P, R]], *args: P.args, **kwargs: P.kwargs) -> CallGen[R]:
-        with self.harvest() as entities:
-            yield self.singleton.call(None)
+class SymCompose(Generic[CT], FnCompose):
+    def call(self: SymCompose[Callable[P, R]], record: FnRecord, *args: P.args, **kwargs: P.kwargs) -> R:
+        entities = self.harvest()
+        entities.commit(self.singleton.harvest(record, None))
 
         return entities.first(*args, **kwargs)
 
-    def collect(self, implement: inTC) -> CollectGen:
-        yield self.singleton.collect(None)
-
-
-class _WrapGenerator(Generic[R, Q, R1]):
-    value: R1
-
-    def __init__(self, gen: Generator[R, Q, R1]):
-        self.gen = gen
-
-    def __iter__(self) -> Generator[R, Q, R1]:
-        self.value = yield from self.gen
-        return self.value
+    def collect(self, record: FnRecord, implement: CT):
+        with self.recording(record, implement) as recorder:
+            recorder.use(self.singleton, None)
 
 
 class Fn(Generic[CCollect, CCall], BaseEntity):
@@ -54,20 +48,20 @@ class Fn(Generic[CCollect, CCall], BaseEntity):
         self.desc = compose(self)
 
     @classmethod
-    def symmetric(cls: type[Fn[Callable[[inTC], Any], inTC]], entity: inTC):
-        return cls(SymCompose[inTC])
+    def symmetric(cls: type[Fn[Callable[[CT], Any], CT]], entity: CT):
+        return cls(SymCompose[CT])
 
     @classmethod
     def declare(
         cls: type[Fn[Callable[InP, R1], Callable[P, R]]],
-        desc: type[ComposeShape[Callable[InP, R1], Callable[P, CallGen[R]]]],
+        desc: type[ComposeShape[Callable[Concatenate[FnRecord, InP], R1], Callable[Concatenate[FnRecord, P], R]]],
     ):
         return cls(desc)  # type: ignore
 
     @classmethod
     def override(cls: type[Fn[CCollect, Callable[P, R]]], target: Fn):
         def wrapper(
-            compose_cls: type[ComposeShape[CCollect, Callable[P, CallGen[R]]]],
+            compose_cls: type[ComposeShape[CCollect, Callable[Concatenate[FnRecord, P], R]]],
         ) -> Fn[CCollect, Callable[P, R]]:
             comp = cls.declare(compose_cls)
             comp.desc.signature = target.desc.signature
@@ -76,7 +70,9 @@ class Fn(Generic[CCollect, CCall], BaseEntity):
         return wrapper
 
     @property
-    def implements(self: Fn[Callable[Concatenate[inTC, OutP], Any], Any]) -> Callable[OutP, Detour[WrapCall[..., inTC], OutP]]:
+    def implements(
+        self: Fn[Callable[Concatenate[CR, OutP], Any], Any],
+    ) -> Callable[OutP, Detour[WrapCall[..., CR], OutP]]:
         def wrapper(*args: OutP.args, **kwargs: OutP.kwargs):
             def inner(impl: Callable[P, R]):
                 # TODO: FnImplementGroupEntity
@@ -90,23 +86,11 @@ class Fn(Generic[CCollect, CCall], BaseEntity):
         signature = self.desc.signature()
 
         for context in iter_layout(signature):
-            record = context.fn_implements.get(signature)
-            if record is None:
-                 continue
+            if signature not in context.fn_implements:
+                continue
 
             record = context.fn_implements[signature]
-            
-            spec = record.spec
-            wrap = _WrapGenerator(spec.desc.call(*args, **kwargs))
-
-            for harvest in wrap:
-                scope = record.scopes[harvest.name]
-                stage = harvest.overload.harvest(scope, harvest.value)
-                endpoint = EntitiesHarvest.slot.get(None)
-                if endpoint is not None:
-                    endpoint[1].commit(stage)
-
-            return wrap.value
+            return record.spec.desc.call(record, *args, **kwargs)
         else:
             raise NotImplementedError
 

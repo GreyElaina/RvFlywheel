@@ -2,15 +2,16 @@ from __future__ import annotations
 
 from sys import path
 
+from flywheel.fn.record import FnRecord
+
 path.append("src")
 
 from typing import Protocol, TypeVar
 
 from flywheel.builtins.overloads import SimpleOverload, TypeOverload
 from flywheel.fn.base import Fn
-from flywheel.fn.compose import FnCompose
+from flywheel.fn.compose import FnCompose, OverloadRecorder
 from flywheel.globals import global_collect
-from flywheel.typing import CallGen
 
 T = TypeVar("T")
 
@@ -20,9 +21,9 @@ class test(FnCompose):
     type = TypeOverload().as_agent()
     sim = SimpleOverload().as_agent()
 
-    def call(self, value: type[T]) -> CallGen[T]:
-        with self.harvest() as entities:
-            yield self.sim.call(value)
+    def call(self, record: FnRecord, value: type[T]) -> T:
+        entities = self.harvest()
+        entities.commit(self.sim.harvest(record, value))
 
         return entities.first(value)
 
@@ -30,34 +31,38 @@ class test(FnCompose):
         def __call__(self, value: type[T]) -> T:
             ...
 
-    # TODO: 把这个 implement 扬了。
-    def collect(self, implement: ShapeCall[T], *, type: type[T]):
-        yield self.sim.collect(type)
+    @FnCompose.use_recorder
+    def collect(self, recorder: OverloadRecorder, implement: ShapeCall[T], *, type: type[T]):
+        recorder.use(self.sim, type)
 
 
-@global_collect
-@test.implements(type=str)
+# @global_collect
+# @test.implements(type=str)
 def test_impl_str(value: type[str]):
     return "11"
 
 
+global_collect(test.implements(type=str)(test_impl_str))
+
+
 @global_collect
 @test.implements(type=int)
-def test_impl_int(value: type[int]) -> int:
-    return 42
+def test_impl_int(value: type[int]):
+    return 11
 
 
+# reveal_type(test)
+import timeit
 from viztracer import VizTracer
 
 tracer = VizTracer()
 tracer.start()
 
-for _ in range(50):
-    test_impl_int(int)
+num = 10000
+delta_a = timeit.timeit("test_impl_str('11')", globals=globals(), number=num)
+delta_b = timeit.timeit("test.call(str)", globals=globals(), number=num)
 
-for _ in range(50):
-    test.call(int)
+print(f"test_impl_int: {delta_a}, call: {delta_b}, {delta_b/delta_a}")
 
 tracer.stop()
-tracer.save() # also takes output_file as an optional argument
-
+tracer.save()  # also takes output_file as an optional argument

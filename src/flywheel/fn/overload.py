@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Callable, Generic, TypeVar, overload, NamedTuple
+from dataclasses import dataclass
+from typing import TYPE_CHECKING, Any, Callable, Generic, TypeVar, overload
 from typing_extensions import Self, final
-
-from .record import FnOverloadHarvest
 
 if TYPE_CHECKING:
     from .compose import FnCompose
+    from .record import FnRecord
 
 TOverload = TypeVar("TOverload", bound="FnOverload", covariant=True)
 TCallValue = TypeVar("TCallValue")
@@ -35,16 +35,20 @@ class FnOverload(Generic[TSignature, TCollectValue, TCallValue]):
         ...
 
 
-class FnOverloadAgent(Generic[TOverload], NamedTuple):
+@dataclass(slots=True)
+class FnOverloadAgent(Generic[TOverload]):
     name: str
     compose: FnCompose
     fn_overload: TOverload
 
-    def collect(self: FnOverloadAgent[FnOverload[Any, TCollectValue, Any]], value: TCollectValue):
-        return FnOverloadHarvest(self.name, self.fn_overload, value)
-
-    def call(self: FnOverloadAgent[FnOverload[Any, Any, TCallValue]], value: TCallValue):
-        return FnOverloadHarvest(self.name, self.fn_overload, value)
+    def harvest(
+        self: FnOverloadAgent[FnOverload[Any, Any, TCallValue]],
+        record: FnRecord,
+        value: TCallValue,
+        *,
+        name: str | None = None,
+    ):
+        return self.fn_overload.harvest(record.scopes[name or self.name], value)
 
 
 class FnOverloadAgentDescriptor(Generic[TOverload]):
@@ -54,7 +58,7 @@ class FnOverloadAgentDescriptor(Generic[TOverload]):
     def __init__(self, fn_overload: TOverload) -> None:
         self.fn_overload = fn_overload
 
-    def __set_name__(self, name: str, owner: type):
+    def __set_name__(self, owner: type, name: str):
         self.name = name
 
     @overload

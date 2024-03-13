@@ -24,9 +24,8 @@ class Collector(CollectContext):
 
     @classmethod
     def env(cls):
-        cx = COLLECTING_CONTEXT_VAR.get()
         instance = cls()
-        instance.fn_implements = cx.fn_implements
+        instance.fn_implements = COLLECTING_CONTEXT_VAR.get().fn_implements
         return instance
 
     def finalize(self):

@@ -210,7 +210,7 @@ class greet_implements(m := scoped_collect.globals().target, static=True):
 
     # 上面的写法未免过于冗长，可以考虑使用这种写法，基本等效。
 
-    @m.implements(greet, name="Grey")
+    @m.impl(greet, name="Grey")
     def greet_grey(self, name: str) -> str:
         return "Symbol, the Founder."
 ```
@@ -252,8 +252,8 @@ def greet_stargaztor(name: str) -> str:
 当你配合 `scoped_collect` 使用时，可以直接使用 `m.implements` 方法，其将自动处理 `m.collect` 与 `m.ensure_self`。
 
 ```python
-@m.implements(greet, name="Teague")
-@m.implements(greet, name="Grey")
+@m.impl(greet, name="Teague")
+@m.impl(greet, name="Grey")
 def greet_stargaztor(self, name: str) -> str:
     return "Stargaztor"
 ```
@@ -318,9 +318,7 @@ from aiohttp import ClientSession
 class sth_implements(m := scoped_collect.env().target, static=True):
     session = InstanceOf(ClientSession)
 
-    @m.collect
-    @fn.implements(...)
-    @m.ensure_self
+    @m.impl(...)
     async def something(self, num: int):
         await self.session.get(f"http://example.com/", params={"num": num})
 

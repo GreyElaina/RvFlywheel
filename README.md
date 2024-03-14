@@ -1,7 +1,7 @@
 # Ryanvk Flywheel
 
-Ryanvk Flywheel 是一个 Ryanvk-style 的 utility，其提供强大的 `Fn`、`FnOverload`，实现了在单一入口店上的几近*完美*的自由重载。
-这个库是专门为 Avilla 轻量化定制的，你可以在[这里](https://github.com/GraiaProject/Avilla/tree/master/avilla/core/flywheel) 找到与本仓库相同的内容，相比标准版的 Ryanvk，其体量仅为其一半不到。
+Ryanvk Flywheel 是一个 Ryanvk-style 的 utility，其提供强大的 `Fn`、`FnOverload`，实现了在单一入口店上的几近*完美*的自由重载。  
+这个库是专门为 Avilla 轻量化定制的，你可以在[这里](https://github.com/GraiaProject/Avilla/tree/master/avilla/core/flywheel) 找到与本仓库相同的内容，相比标准版的 Ryanvk，其体量仅为其一半不到。  
 本仓库中的内容预计不会在 PyPI 上发布单独的 `flywheel` 包，请自行使用 VcsRequirement 方式导入你的项目。
 
 ## 使用
@@ -230,12 +230,12 @@ class greet_implements(m := scoped_collect.env().target, static=True):
     ...
 ```
 
-`static=True` 时，`greet_implements` 会被实例化并保存到全局中的*实例上下文* (Instance Context) 中。
+`static=True` 时，`greet_implements` 会被实例化并保存到全局中的*实例上下文* (Instance Context) 中。  
 如果你自定义了你的构造方法 (即 `__init__` 或 `__new__`)，则会在启动时报错，此时你需要自己实现对 `InstanceContext` 的生成与应用。
 
 ## 实例上下文
 
-实例上下文 (`InstanceContext`) 是 Flywheel 访问局部命名空间中实例的桥梁，此外，你也可以透过这一特效，向 `scoped_collect` 中隐式传递参数，实现依赖注入。
+实例上下文 (`InstanceContext`) 是 Flywheel 访问局部命名空间中实例的桥梁，此外，你也可以透过这一特效，向 `scoped_collect` 中隐式传递参数，实现依赖注入。  
 此外，全局实例上下文也在 `flywheel.globals` 模块中，可供君自由取用。
 
 ```python

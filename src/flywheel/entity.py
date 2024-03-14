@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, TypedDict, final
 
-from .collector import Collector
+from .scoped import scoped_collect
 
 if TYPE_CHECKING:
     from .context import CollectContext
@@ -20,7 +20,7 @@ class BaseEntity:
     def collect(self, collector: CollectContext):
         self.collect_context = collector
 
-        if isinstance(self.collect_context, Collector):
+        if isinstance(self.collect_context, scoped_collect):
             self.collect_context.on_collected(self._fallback_collected_callback)
 
         return self
@@ -36,7 +36,7 @@ class BaseEntity:
         if self.collect_context is None:
             return
 
-        if isinstance(self.collect_context, Collector):
+        if isinstance(self.collect_context, scoped_collect):
             if owner is not self.collect_context.cls:
                 return
 
@@ -46,7 +46,7 @@ class BaseEntity:
                 pass
 
             @self.collect_context.on_collected
-            def _(collector: Collector):
+            def _(collector: scoped_collect):
                 if collector.cls is None:
                     return
 

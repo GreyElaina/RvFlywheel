@@ -54,7 +54,7 @@ class InstanceContext:
 
         token = INSTANCE_CONTEXT_VAR.set(self)
         try:
-            yield
+            yield self
         finally:
             INSTANCE_CONTEXT_VAR.reset(token)
             self.instances = original

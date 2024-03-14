@@ -28,7 +28,7 @@ class FnOverload(Generic[TSignature, TCollectValue, TCallValue]):
     def collect(self, scope: dict, signature: TSignature) -> dict[Callable, None]:
         ...
 
-    def harvest(self, scope: dict, value: TCallValue) -> dict[Callable, None]:
+    def harvest(self, scope: dict, call_value: TCallValue) -> dict[Callable, None]:
         ...
 
     def access(self, scope: dict, signature: TSignature) -> dict[Callable, None] | None:

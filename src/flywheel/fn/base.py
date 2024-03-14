@@ -50,9 +50,9 @@ class Fn(Generic[CCollect, CCall], BaseEntity):
 
     @classmethod
     def declare(
-        cls: type[Fn[Callable[InP, R1], Callable[P, R]]],
+        cls,
         desc: type[ComposeShape[Callable[Concatenate[FnRecord, InP], R1], Callable[Concatenate[FnRecord, P], R]]],
-    ):
+    ) -> Fn[Callable[InP, R1], Callable[P, R]]:
         return cls(desc)  # type: ignore
 
     @classmethod

@@ -4,8 +4,6 @@ from sys import path
 
 from flywheel.fn.record import FnRecord
 
-path.append("src")
-
 from typing import Protocol, TypeVar
 
 from flywheel.builtins.overloads import SimpleOverload, TypeOverload
@@ -24,7 +22,7 @@ class test(FnCompose):
     def call(self, record: FnRecord, value: type[T]) -> T:
         entities = self.harvest_from(self.sim.harvest(record, value))
 
-        return next(entities)(value)
+        return entities.first(value)
 
     class ShapeCall(Protocol[T]):
         def __call__(self, value: type[T]) -> T:
@@ -34,6 +32,8 @@ class test(FnCompose):
     def collect(self, recorder: OverloadRecorder, implement: ShapeCall[T], *, type: type[T]):
         recorder.use(self.sim, type)
 
+
+reveal_type(test.implements(type=str))
 
 # @global_collect
 # @test.implements(type=str)
@@ -50,7 +50,7 @@ def test_impl_int(value: type[int]):
     return 11
 
 
-# reveal_type(test)
+reveal_type(test)
 import timeit
 
 from viztracer import VizTracer

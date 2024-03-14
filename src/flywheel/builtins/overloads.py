@@ -23,9 +23,9 @@ class SimpleOverload(FnOverload[SimpleOverloadSignature, Any, Any]):
 
         return target
 
-    def harvest(self, scope: dict, value: Any) -> dict[Callable, None]:
-        if value in scope:
-            return scope[value]
+    def harvest(self, scope: dict, call_value: Any) -> dict[Callable, None]:
+        if call_value in scope:
+            return scope[call_value]
 
         return {}
 
@@ -51,8 +51,8 @@ class TypeOverload(FnOverload[TypeOverloadSignature, Type[Any], Any]):
 
         return target
 
-    def harvest(self, scope: dict, value: Any) -> dict[Callable, None]:
-        t = type(value)
+    def harvest(self, scope: dict, call_value: Any) -> dict[Callable, None]:
+        t = type(call_value)
         if t in scope:
             return scope[t]
 
@@ -78,7 +78,7 @@ class SingletonOverload(FnOverload[_SingletonOverloadSignature, None, None]):
         s = scope[None] = {}
         return s
 
-    def harvest(self, scope: dict, value) -> dict[Callable, None]:
+    def harvest(self, scope: dict, call_value) -> dict[Callable, None]:
         return scope[None]
 
     def access(self, scope: dict, signature) -> dict[Callable, None] | None:

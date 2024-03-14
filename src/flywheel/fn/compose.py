@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from functools import reduce
-from typing import TYPE_CHECKING, Any, Callable, Final, Iterator, TypeVar, overload
+from typing import TYPE_CHECKING, Any, Callable, Final, Generic, Iterator, TypeVar, overload
 
 from typing_extensions import Concatenate
 
@@ -38,13 +38,13 @@ class FnCompose:
         return self.fn.collect_context
 
     @overload
-    def harvest_from(self: ExplictImplementShape[CT], *collections: dict[Callable, None]) -> Iterator[CT]:
+    def harvest_from(self: ExplictImplementShape[CT], *collections: dict[Callable, None]) -> HarvestWrapper[CT]:
         ...
 
     @overload
     def harvest_from(
         self: Collectee[Concatenate[Any, Callable[P, R], P1]], *collections: dict[Callable, None]
-    ) -> Iterator[Callable[P, R]]:
+    ) -> HarvestWrapper[Callable[P, R]]:
         ...
 
     def harvest_from(self, *collections: dict[Callable, None]):  # type: ignore
@@ -55,10 +55,10 @@ class FnCompose:
         init = col.pop(0)
 
         if not col:
-            return iter(init)
+            return HarvestWrapper(init)
 
         r = reduce(lambda x, y: {i: None for i in x if i in y}, col, init)
-        return iter(r)
+        return HarvestWrapper(r)
 
     def recording(self, record: FnRecord, implement: Callable):
         return OverloadRecorder(record, implement)
@@ -116,3 +116,30 @@ class OverloadRecorder:
             self.operators.append((name, target, value))
 
         return self
+
+
+class HarvestWrapper(Generic[CT]):
+    harvest: dict[CT, None]
+
+    def __init__(self, harvest: dict[CT, None]):
+        self.harvest = harvest
+    
+    @property
+    def first(self) -> CT:
+        if not self.harvest:
+            raise NotImplementedError("cannot lookup any implementation with given arguments")
+        
+        return next(iter(self.harvest))
+
+    @property
+    def __call__(self):
+        return self.first
+
+    def __iter__(self):
+        if not self.harvest:
+            raise NotImplementedError("cannot lookup any implementation with given arguments")
+        
+        return iter(self.harvest)
+
+    def __bool__(self):
+        return bool(self.harvest)

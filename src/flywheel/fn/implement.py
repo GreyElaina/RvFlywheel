@@ -4,10 +4,10 @@ from typing import TYPE_CHECKING, Any, Callable, Generic, overload
 
 from typing_extensions import Concatenate, Self
 
-from .record import FnRecord
-from ..collector import Collector
 from ..entity import BaseEntity
+from ..scoped import scoped_collect
 from ..typing import CR, P
+from .record import FnRecord
 
 if TYPE_CHECKING:
     from .base import Fn
@@ -24,7 +24,7 @@ class FnImplementEntity(Generic[CR, P], BaseEntity):
         self._collect_args = args
         self._collect_kwargs = kwargs
 
-    def collect(self, collector: Collector):
+    def collect(self, collector: scoped_collect):
         super().collect(collector)
 
         record_signature = self.fn.desc.signature()

@@ -43,3 +43,7 @@ def iter_layout(session_id: Any | None = None) -> Generator[CollectContext, None
 
 def global_collect(entity: TEntity) -> TEntity:
     return GLOBAL_COLLECT_CONTEXT.collect(entity)
+
+
+def local_collect(entity: TEntity) -> TEntity:
+    return COLLECTING_CONTEXT_VAR.get().collect(entity)

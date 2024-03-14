@@ -69,9 +69,12 @@ class Fn(Generic[CCollect, CCall], BaseEntity):
     @property
     def implements(self: Fn[Callable[Concatenate[CR, OutP], Any], Any]) -> Callable[OutP, Detour[WrapCall[..., CR], OutP]]:
         def wrapper(*args: OutP.args, **kwargs: OutP.kwargs):
-            def inner(impl: Callable[P, R]):
-                # TODO: FnImplementGroupEntity
-                return FnImplementEntity(self, impl, *args, **kwargs)
+            def inner(impl: Callable[P, R] | FnImplementEntity[Callable[P, R]]):
+                if not isinstance(impl, FnImplementEntity):
+                    impl = FnImplementEntity(impl)
+
+                impl.add_target(self, *args, **kwargs)
+                return impl
 
             return inner
 
@@ -87,7 +90,7 @@ class Fn(Generic[CCollect, CCall], BaseEntity):
             record = context.fn_implements[signature]
             return record.spec.desc.call(record, *args, **kwargs)
         else:
-            raise NotImplementedError
+            raise NotImplementedError("cannot find any record with given fn declaration")
 
     @property
     def call(self) -> CCall:

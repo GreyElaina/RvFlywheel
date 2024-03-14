@@ -1,6 +1,8 @@
 # Ryanvk Flywheel
 
 Ryanvk Flywheel 是一个 Ryanvk-style 的 utility，其提供强大的 `Fn`、`FnOverload`，实现了在单一入口店上的几近*完美*的自由重载。  
+...而更为可贵的是，Flywheel 具有*前沿级*的类型支持。
+
 这个库是专门为 Avilla 轻量化定制的，你可以在[这里](https://github.com/GraiaProject/Avilla/tree/master/avilla/core/flywheel) 找到与本仓库相同的内容，相比标准版的 Ryanvk，其体量仅为其一半不到。  
 本仓库中的内容预计不会在 PyPI 上发布单独的 `flywheel` 包，请自行使用 VcsRequirement 方式导入你的项目。
 
@@ -77,7 +79,7 @@ def greet_grey(name: str) -> str:
 NotImplementedError: cannot lookup any implementation with given arguments
 ```
 
-显然，我们并没有面向 `"Hizuki"` 实现一个 `greet`。为了我们的程序能处理这种情况，我们可以这样修改 `greet` 的声明。
+显然，我们并没有面向 `"Hizuki"` 实现一个 `greet`。为了使我们的程序能处理这种情况，我们可以这样修改 `greet` 的声明：
 
 ```python
 @Fn.declare
@@ -94,7 +96,7 @@ class greet(FnCompose):
         return entities.first(name)
 ```
 
-这种方法可以提供一种极其灵活的默认实现机制：于是现在我们可以调用 `greet` 了
+这种方法可以提供一种极其灵活的默认实现机制：于是现在我们可以调用 `greet` 了。
 
 ```python
 >>> greet.call("Hizuki")
@@ -232,6 +234,30 @@ class greet_implements(m := scoped_collect.env().target, static=True):
 
 `static=True` 时，`greet_implements` 会被实例化并保存到全局中的*实例上下文* (Instance Context) 中。  
 如果你自定义了你的构造方法 (即 `__init__` 或 `__new__`)，则会在启动时报错，此时你需要自己实现对 `InstanceContext` 的生成与应用。
+
+## 叠加
+
+Flywheel 允许你这么做...：
+
+```python
+@greet.implements(name="Teague")
+@greet.implements(name="Grey")
+def greet_stargaztor(name: str) -> str:
+    return f"Stargaztor"
+```
+
+他等同于分别调用 `Fn.implements` 方法，但写的更简短，同时你依旧能获得 Flywheel 前沿级的类型支持。
+
+当你配合 `scoped_collect` 使用时，请注意将 `Fn.implements` 调用*夹*在 `m.collect` 与 `m.ensure_self` 中间：
+
+```python
+@m.collect
+@greet.implements(name="Teague")
+@greet.implements(name="Grey")
+@m.ensure_self
+def greet_teague(self, name: str) -> str:
+    return f"Stargaztor."
+```
 
 ## 实例上下文
 

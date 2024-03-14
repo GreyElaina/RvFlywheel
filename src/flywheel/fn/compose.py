@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from functools import reduce
-from typing import TYPE_CHECKING, Any, Callable, Final, Generic, Iterator, TypeVar, overload
+from typing import TYPE_CHECKING, Any, Callable, Final, Generic, TypeVar, overload
 
 from typing_extensions import Concatenate
 

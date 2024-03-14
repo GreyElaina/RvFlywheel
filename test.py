@@ -33,8 +33,6 @@ class test(FnCompose):
         recorder.use(self.sim, type)
 
 
-reveal_type(test.implements(type=str))
-
 # @global_collect
 # @test.implements(type=str)
 def test_impl_str(value: type[str]):
@@ -50,7 +48,7 @@ def test_impl_int(value: type[int]):
     return 11
 
 
-reveal_type(test)
+#reveal_type(test)
 import timeit
 
 from viztracer import VizTracer

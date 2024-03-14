@@ -23,7 +23,7 @@ class CollectContext:
 
         token = COLLECTING_CONTEXT_VAR.set(self)
         try:
-            yield
+            yield self
         finally:
             COLLECTING_CONTEXT_VAR.reset(token)
 
@@ -33,7 +33,7 @@ class CollectContext:
 
         token = LOOKUP_LAYOUT_VAR.set((self, *LOOKUP_LAYOUT_VAR.get()))
         try:
-            yield
+            yield self
         finally:
             LOOKUP_LAYOUT_VAR.reset(token)
 

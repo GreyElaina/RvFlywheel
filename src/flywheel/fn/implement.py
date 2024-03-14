@@ -13,27 +13,28 @@ if TYPE_CHECKING:
     from .base import Fn
 
 
-class FnImplementEntity(Generic[CR, P], BaseEntity):
-    fn: Fn[Callable[Concatenate[Any, P], Any], Any]
+class FnImplementEntity(Generic[CR], BaseEntity):
+    targets: list[tuple[Fn, tuple[Any, ...], dict[str, Any]]]
     impl: CR
 
-    def __init__(self, fn: Fn[Callable[Concatenate[Any, P], Any], Any], impl: CR, *args: P.args, **kwargs: P.kwargs):
-        self.fn = fn
+    def __init__(self, impl: CR):
+        self.targets = []
         self.impl = impl
-
-        self._collect_args = args
-        self._collect_kwargs = kwargs
+    
+    def add_target(self, fn: Fn[Callable[Concatenate[Any, P], Any], Any], *args: P.args, **kwargs: P.kwargs):
+        self.targets.append((fn, args, kwargs))
 
     def collect(self, collector: scoped_collect):
         super().collect(collector)
 
-        record_signature = self.fn.desc.signature()
-        if record_signature in collector.fn_implements:
-            record = collector.fn_implements[record_signature]
-        else:
-            record = collector.fn_implements[record_signature] = FnRecord(self.fn)
+        for fn, args, kwargs in self.targets:
+            record_signature = fn.desc.signature()
+            if record_signature in collector.fn_implements:
+                record = collector.fn_implements[record_signature]
+            else:
+                record = collector.fn_implements[record_signature] = FnRecord(fn)
 
-        self.fn.desc.collect(record, self.impl, *self._collect_args, **self._collect_kwargs)
+            fn.desc.collect(record, self.impl, *args, **kwargs)
 
         return self
 
@@ -68,7 +69,7 @@ class FnImplementEntity(Generic[CR, P], BaseEntity):
 
 
 class FnImplementEntityAgent(Generic[CR]):
-    entity: FnImplementEntity[CR, ...]
+    entity: FnImplementEntity[CR]
 
     def __init__(self, entity: FnImplementEntity) -> None:
         self.entity = entity
@@ -82,4 +83,8 @@ class FnImplementEntityAgent(Generic[CR]):
 
     @property
     def super(self) -> CR:
-        return self.entity.fn.call
+        if len(self.entity.targets) != 1:
+            # 这种情况下无法确认要 call 哪个 fn
+            raise RuntimeError("super() is only available for single target.")
+
+        return self.entity.targets[0][0].call

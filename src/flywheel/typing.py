@@ -35,8 +35,8 @@ class WrapCall(Protocol[P, R]):
 class Detour(Protocol[R, OutP]):
     def __call__(
         self: Detour[WrapCall[..., Callable[P1, R1]], OutP],
-        implement: Callable[P1, R1],
-    ) -> FnImplementEntity[Callable[P1, R1], OutP]:
+        implement: Callable[P1, R1] | FnImplementEntity[Callable[P1, R1]],
+    ) -> FnImplementEntity[Callable[P1, R1]]:
         ...
 
 

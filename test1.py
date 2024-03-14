@@ -32,22 +32,26 @@ class greet(FnCompose):
 
 from flywheel.globals import global_collect
 from flywheel.scoped import scoped_collect
+from flywheel.context import CollectContext, InstanceContext
+from flywheel.builtins.instance_of import InstanceOf
 
 
-class greet_implements(m := scoped_collect.globals().target, static=True):
-    @m.collect
-    @greet.implements(name="Teague")
-    @m.ensure_self
-    def greet_teague(self, name: str) -> str:
-        return "Stargaztor, but in name only."
+with CollectContext().collect_scope() as cx:
 
-    @m.collect
-    @greet.implements(name="Grey")
-    @m.ensure_self
-    def greet_grey(self, name: str) -> str:
-        return "Symbol, the Founder."
+    class greet_implements(m := scoped_collect.globals().target, static=True):
+        env = InstanceOf(str)
+
+        @m.collect
+        @greet.implements(name="Teague")
+        @greet.implements(name="Grey")
+        @m.ensure_self
+        def greet_teague(self, name: str) -> str:
+            return f"Stargaztor, {self.env}"
 
 
-print(greet.call("Teague"))
-print(greet.call("Grey"))
-print(greet.call("Hizuki"))
+with InstanceContext().scope() as ins:
+    ins.instances[str] = "test"
+
+    print(greet.call("Teague"))
+    print(greet.call("Grey"))
+    print(greet.call("Hizuki"))

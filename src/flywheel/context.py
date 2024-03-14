@@ -18,7 +18,7 @@ class CollectContext:
         return entity.collect(self)
 
     @contextmanager
-    def scope(self):
+    def collect_scope(self):
         from .globals import COLLECTING_CONTEXT_VAR
 
         token = COLLECTING_CONTEXT_VAR.set(self)
@@ -26,6 +26,16 @@ class CollectContext:
             yield
         finally:
             COLLECTING_CONTEXT_VAR.reset(token)
+
+    @contextmanager
+    def lookup_scope(self):
+        from .globals import LOOKUP_LAYOUT_VAR
+
+        token = LOOKUP_LAYOUT_VAR.set((self, *LOOKUP_LAYOUT_VAR.get()))
+        try:
+            yield
+        finally:
+            LOOKUP_LAYOUT_VAR.reset(token)
 
 
 class InstanceContext:

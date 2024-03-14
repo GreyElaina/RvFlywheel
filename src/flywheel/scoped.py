@@ -18,14 +18,14 @@ if TYPE_CHECKING:
 
 class scoped_collect(CollectContext):
     fn_implements: dict[FnImplement, FnRecord]
-    todo_list: dict[FnImplementEntity, None]
+    _tocollect_list: dict[FnImplementEntity, None]
     finalize_cbs: list[Callable[[scoped_collect], Any]]
     cls: type | None = None
 
     def __init__(self) -> None:
         self.fn_implements = {}
         self.finalize_cbs = []
-        self.todo_list = {}
+        self._tocollect_list = {}
 
     @classmethod
     def globals(cls):
@@ -43,7 +43,7 @@ class scoped_collect(CollectContext):
         for cb in self.finalize_cbs:
             cb(self)
 
-        for impl in self.todo_list:
+        for impl in self._tocollect_list:
             impl.collect(self)
 
     def on_collected(self, func: Callable[[scoped_collect], Any]):
@@ -97,7 +97,7 @@ class scoped_collect(CollectContext):
                         impl = FnImplementEntity(impl_call)
 
                     impl.add_target(fn, *args, **kwargs)
-                    self.todo_list[impl] = None
+                    self._tocollect_list[impl] = None
                     return impl
 
                 return inner  # type: ignore

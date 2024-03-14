@@ -4,8 +4,7 @@ from typing import TYPE_CHECKING, Any, Callable, Generic, overload
 
 from typing_extensions import Concatenate, Self
 
-from flywheel.fn.record import FnRecord
-
+from .record import FnRecord
 from ..collector import Collector
 from ..entity import BaseEntity
 from ..typing import CR, P

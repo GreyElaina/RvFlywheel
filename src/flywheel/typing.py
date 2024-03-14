@@ -22,7 +22,7 @@ CT = TypeVar("CT", bound=Callable)
 TEntity = TypeVar("TEntity", bound="BaseEntity")
 
 
-class ImplementForCollect(Protocol[InP]):
+class Collectee(Protocol[InP]):
     def collect(self, *args: InP.args, **kwargs: InP.kwargs) -> Any:
         ...
 

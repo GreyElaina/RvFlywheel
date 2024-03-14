@@ -22,10 +22,9 @@ class test(FnCompose):
     sim = SimpleOverload().as_agent()
 
     def call(self, record: FnRecord, value: type[T]) -> T:
-        entities = self.harvest()
-        entities.commit(self.sim.harvest(record, value))
+        entities = self.harvest_from(self.sim.harvest(record, value))
 
-        return entities.first(value)
+        return next(entities)(value)
 
     class ShapeCall(Protocol[T]):
         def __call__(self, value: type[T]) -> T:
@@ -53,6 +52,7 @@ def test_impl_int(value: type[int]):
 
 # reveal_type(test)
 import timeit
+
 from viztracer import VizTracer
 
 tracer = VizTracer()

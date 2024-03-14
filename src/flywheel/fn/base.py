@@ -31,10 +31,7 @@ class ComposeShape(Protocol[CCollect, CCall]):
 
 class SymCompose(Generic[CT], FnCompose):
     def call(self: SymCompose[Callable[P, R]], record: FnRecord, *args: P.args, **kwargs: P.kwargs) -> R:
-        entities = self.harvest()
-        entities.commit(self.singleton.harvest(record, None))
-
-        return entities.first(*args, **kwargs)
+        return next(iter(self.singleton.harvest(record, None)))(*args, **kwargs)
 
     def collect(self, record: FnRecord, implement: CT):
         with self.recording(record, implement) as recorder:
@@ -70,9 +67,7 @@ class Fn(Generic[CCollect, CCall], BaseEntity):
         return wrapper
 
     @property
-    def implements(
-        self: Fn[Callable[Concatenate[CR, OutP], Any], Any],
-    ) -> Callable[OutP, Detour[WrapCall[..., CR], OutP]]:
+    def implements(self: Fn[Callable[Concatenate[CR, OutP], Any], Any]) -> Callable[OutP, Detour[WrapCall[..., CR], OutP]]:
         def wrapper(*args: OutP.args, **kwargs: OutP.kwargs):
             def inner(impl: Callable[P, R]):
                 # TODO: FnImplementGroupEntity

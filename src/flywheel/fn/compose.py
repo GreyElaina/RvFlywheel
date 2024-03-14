@@ -1,12 +1,13 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Any, Callable, Final, Generic, Iterator, TypeVar, overload
+from functools import reduce
+from typing import TYPE_CHECKING, Any, Callable, Final, Iterator, TypeVar, overload
 
 from typing_extensions import Concatenate
 
 from ..builtins.overloads import SINGLETON_OVERLOAD
-from ..typing import CT, P1, ExplictImplementShape, ImplementForCollect, P, R
+from ..typing import CT, P1, Collectee, ExplictImplementShape, P, R
 from .overload import FnOverload, FnOverloadAgent, TCollectValue
 from .record import FnImplement, FnRecord
 
@@ -23,10 +24,6 @@ class FnCompose:
     def __init__(self, fn: Fn):
         self.fn = fn
 
-    @property
-    def collector(self):
-        return self.fn.collect_context
-
     def call(self, record: FnRecord) -> Any:
         ...
 
@@ -36,16 +33,32 @@ class FnCompose:
     def signature(self):
         return FnImplement(self.fn)
 
+    @property
+    def collector(self):
+        return self.fn.collect_context
+
     @overload
-    def harvest(self: ExplictImplementShape[CT]) -> EntitiesHarvest[[CT]]:
+    def harvest_from(self: ExplictImplementShape[CT], *collections: dict[Callable, None]) -> Iterator[CT]:
         ...
 
     @overload
-    def harvest(self: ImplementForCollect[P1]) -> EntitiesHarvest[P1]:
+    def harvest_from(
+        self: Collectee[Concatenate[Any, Callable[P, R], P1]], *collections: dict[Callable, None]
+    ) -> Iterator[Callable[P, R]]:
         ...
 
-    def harvest(self):  # type: ignore
-        return EntitiesHarvest()
+    def harvest_from(self, *collections: dict[Callable, None]):  # type: ignore
+        if not collections:
+            raise TypeError("at least one collection is required")
+
+        col = list(collections)
+        init = col.pop(0)
+
+        if not col:
+            return iter(init)
+
+        r = reduce(lambda x, y: {i: None for i in x if i in y}, col, init)
+        return iter(r)
 
     def recording(self, record: FnRecord, implement: Callable):
         return OverloadRecorder(record, implement)
@@ -72,10 +85,10 @@ class OverloadRecorder:
         self.done()
 
     def done(self):
-        for scope_id, ov, collect_value in self.operators:
-            signature = ov.digest(collect_value)
-            scope = self.target.scopes.setdefault(scope_id, {})
-            target_set = ov.collect(scope, signature)
+        for name, rule, value in self.operators:
+            signature = rule.digest(value)
+            scope = self.target.scopes.setdefault(name, {})
+            target_set = rule.collect(scope, signature)
             target_set[self.implement] = None
 
         self.target.entities[frozenset(self.operators)] = self.implement
@@ -103,33 +116,3 @@ class OverloadRecorder:
             self.operators.append((name, target, value))
 
         return self
-
-
-@dataclass(init=True, slots=True)
-class EntitiesHarvest(Generic[P1]):
-    _result: dict[Callable, None] | None = None
-
-    def commit(self, inbound: dict[Callable, None]) -> None:
-        if self._result is None:
-            self._result = inbound
-            return
-
-        self._result = dict.fromkeys(inbound.keys() & self._result)
-
-    def iter_result(self: EntitiesHarvest[Concatenate[Callable[P, R], ...]]) -> Iterator[Callable[P, R]]:
-        if self._result is None:
-            raise LookupError("attempts to read result before its mutations all finished")
-
-        return iter(self._result.keys())  # type: ignore
-
-    @property
-    def first(self: EntitiesHarvest[Concatenate[Any, Callable[P, R], ...]]) -> Callable[P, R]:
-        res = self._result
-
-        if res is None:
-            raise LookupError("attempts to read result before its mutations all finished")
-
-        for i in res:
-            return i  # type: ignore
-        else:
-            raise NotImplementedError("cannot lookup any implementation with given arguments")

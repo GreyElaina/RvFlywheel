@@ -10,7 +10,7 @@ Ryanvk Flywheel 是一个 Ryanvk-style 的 utility，其提供强大的 `Fn`、`
 
 Flywheel 着重于围绕 `Fn` 建设，以提供强大的重载功能为目的。
 
-我们可以通过这种方法创建一个使用*简单重载*(`SimpleOverload`)的 `Fn`。
+可以通过这种方法创建一个使用*简单重载*(`SimpleOverload`)的 `Fn`。
 
 ```python
 from typing import Protocol
@@ -47,7 +47,8 @@ class greet(FnCompose):
 - 当 `name` 是 `Teague` 的时候返回 `"Stargaztor, but in name only."`；
 - 当 `name` 是 `Grey` 的时候返回 `"Symbol, the Founder."`：
 
-当提出实现后，我们还得将其收集起来，这样 Flywheel 的系统才能调用这些实现。在这里，我们使用 `global_collect` 函数，将实现收集到全局上下文中。
+当提出实现后，我们还得将其收集起来，这样 Flywheel 的内部系统才能调用的到这些实现。
+在这里，我们使用 `global_collect` 函数，将实现收集到全局上下文中。
 
 ```python
 from flywheel.globals import global_collect
@@ -323,6 +324,18 @@ with instance_cx.scope(), collect_cx.lookup_scope():
 ```
 
 从该示例中你也可以了解到 Flywheel 对异步的支持，理论上也能一并支持生成器，异步生成器甚至 `contextlib.contextmanager`，但如果出了问题，欢迎汇报至 issues.
+
+### 全局上下文
+
+Flywheel 同样提供了全局的实例上下文。
+
+```python
+from flywheel.globals import GLOBAL_INSTANCE_CONTEXT
+
+GLOBAL_INSTANCE_CONTEXT.instances[...] = ...
+```
+
+事实上，标记为 `static` 的 `scoped_collect`，其自动实例化结果就存储在这里，`static` 参数仅影响这一行为，也就是说 —— 你完全可以自己根据你自己的应用情况，将 `scoped_collect` 的实例化结果保存到全局上下文中。
 
 ## 代数效应 - 示例
 

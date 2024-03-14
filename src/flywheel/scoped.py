@@ -5,15 +5,15 @@ from typing import Any, Callable
 
 from .context import CollectContext
 from .globals import COLLECTING_CONTEXT_VAR, GLOBAL_COLLECT_CONTEXT, GLOBAL_INSTANCE_CONTEXT, INSTANCE_CONTEXT_VAR
-from .typing import TYPE_CHECKING, P, R, TEntity, Detour1
+from .typing import TYPE_CHECKING, Detour1, P, R, TEntity
 
 if TYPE_CHECKING:
     from typing_extensions import Concatenate
 
-    from .fn.record import FnImplement, FnRecord
     from .fn.base import Fn, WrapCall
     from .fn.implement import FnImplementEntity
-    from .typing import OutP, CR
+    from .fn.record import FnImplement, FnRecord
+    from .typing import CR, OutP
 
 
 class scoped_collect(CollectContext):
@@ -84,7 +84,7 @@ class scoped_collect(CollectContext):
                 return wrapper
 
             @staticmethod
-            def implements(
+            def impl(
                 fn: Fn[Callable[Concatenate[CR, OutP], Any], Any], *args: OutP.args, **kwargs: OutP.kwargs
             ) -> Detour1[WrapCall[..., CR], OutP]:
                 def inner(impl: Callable[Concatenate[Any, P], R] | FnImplementEntity[Callable[P, R]]):

@@ -30,19 +30,18 @@ class greet(FnCompose):
         recorder.use(self.name, name)
 
 
+from flywheel.builtins.instance_of import InstanceOf
+from flywheel.context import CollectContext, InstanceContext
 from flywheel.globals import global_collect
 from flywheel.scoped import scoped_collect
-from flywheel.context import CollectContext, InstanceContext
-from flywheel.builtins.instance_of import InstanceOf
-
 
 with CollectContext().collect_scope() as cx:
 
     class greet_implements(m := scoped_collect.globals().target, static=True):
         env = InstanceOf(str)
 
-        @m.implements(greet, name="Teague")
-        @m.implements(greet, name="Grey")
+        @m.impl(greet, name="Teague")
+        @m.impl(greet, name="Grey")
         def greet_someone(self, name: str) -> str:
             return f"Stargaztor, {self.env}"
 

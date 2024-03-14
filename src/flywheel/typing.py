@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, Callable, Protocol, TypeVar
 
-from typing_extensions import ParamSpec
+from typing_extensions import ParamSpec, Concatenate
 
 if TYPE_CHECKING:
     from .entity import BaseEntity
@@ -22,7 +22,7 @@ CT = TypeVar("CT", bound=Callable)
 TEntity = TypeVar("TEntity", bound="BaseEntity")
 
 
-class Collectee(Protocol[InP]):
+class Collectable(Protocol[InP]):
     def collect(self, *args: InP.args, **kwargs: InP.kwargs) -> Any:
         ...
 
@@ -40,7 +40,15 @@ class Detour(Protocol[R, OutP]):
         ...
 
 
-class ExplictImplementShape(Protocol[CR]):
+class Detour1(Protocol[R, OutP]):
+    def __call__(
+        self: Detour1[WrapCall[..., Callable[P1, R1]], OutP],
+        implement: Callable[Concatenate[Any, P1], R1] | FnImplementEntity[Callable[P1, R1]],
+    ) -> FnImplementEntity[Callable[P1, R1]]:
+        ...
+
+
+class ImplementSample(Protocol[CR]):
     @property
     def implement_sample(self) -> CR:
         ...

@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING, Any, Callable, Final, Generic, TypeVar, overlo
 from typing_extensions import Concatenate
 
 from ..builtins.overloads import SINGLETON_OVERLOAD
-from ..typing import CT, P1, Collectee, ExplictImplementShape, P, R
+from ..typing import CT, P1, Collectable, ImplementSample, P, R
 from .overload import FnOverload, FnOverloadAgent, TCollectValue
 from .record import FnImplement, FnRecord
 
@@ -38,12 +38,12 @@ class FnCompose:
         return self.fn.collect_context
 
     @overload
-    def harvest_from(self: ExplictImplementShape[CT], *collections: dict[Callable, None]) -> HarvestWrapper[CT]:
+    def harvest_from(self: ImplementSample[CT], *collections: dict[Callable, None]) -> HarvestWrapper[CT]:
         ...
 
     @overload
     def harvest_from(
-        self: Collectee[Concatenate[Any, Callable[P, R], P1]], *collections: dict[Callable, None]
+        self: Collectable[Concatenate[Any, Callable[P, R], P1]], *collections: dict[Callable, None]
     ) -> HarvestWrapper[Callable[P, R]]:
         ...
 
@@ -123,12 +123,12 @@ class HarvestWrapper(Generic[CT]):
 
     def __init__(self, harvest: dict[CT, None]):
         self.harvest = harvest
-    
+
     @property
     def first(self) -> CT:
         if not self.harvest:
             raise NotImplementedError("cannot lookup any implementation with given arguments")
-        
+
         return next(iter(self.harvest))
 
     @property
@@ -138,7 +138,7 @@ class HarvestWrapper(Generic[CT]):
     def __iter__(self):
         if not self.harvest:
             raise NotImplementedError("cannot lookup any implementation with given arguments")
-        
+
         return iter(self.harvest)
 
     def __bool__(self):

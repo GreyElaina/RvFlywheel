@@ -5,22 +5,27 @@ from typing import Any, Callable
 
 from .context import CollectContext
 from .globals import COLLECTING_CONTEXT_VAR, GLOBAL_COLLECT_CONTEXT, GLOBAL_INSTANCE_CONTEXT, INSTANCE_CONTEXT_VAR
-from .typing import TYPE_CHECKING, P, R, TEntity
+from .typing import TYPE_CHECKING, P, R, TEntity, Detour1
 
 if TYPE_CHECKING:
     from typing_extensions import Concatenate
 
     from .fn.record import FnImplement, FnRecord
+    from .fn.base import Fn, WrapCall
+    from .fn.implement import FnImplementEntity
+    from .typing import OutP, CR
 
 
 class scoped_collect(CollectContext):
     fn_implements: dict[FnImplement, FnRecord]
+    todo_list: dict[FnImplementEntity, None]
     finalize_cbs: list[Callable[[scoped_collect], Any]]
     cls: type | None = None
 
     def __init__(self) -> None:
         self.fn_implements = {}
         self.finalize_cbs = []
+        self.todo_list = {}
 
     @classmethod
     def globals(cls):
@@ -38,6 +43,9 @@ class scoped_collect(CollectContext):
         for cb in self.finalize_cbs:
             cb(self)
 
+        for impl in self.todo_list:
+            impl.collect(self)
+
     def on_collected(self, func: Callable[[scoped_collect], Any]):
         self.finalize_cbs.append(func)
         return func
@@ -48,6 +56,8 @@ class scoped_collect(CollectContext):
 
     @property
     def target(self):
+        from .fn.implement import FnImplementEntity
+
         class LocalEndpoint:
             collector = self
 
@@ -63,7 +73,7 @@ class scoped_collect(CollectContext):
                 return entity.collect(self)
 
             @staticmethod
-            def ensure_self(func: Callable[Concatenate[Any, P], R]):
+            def ensure_self(func: Callable[Concatenate[Any, P], R]) -> Callable[P, R]:
                 @functools.wraps(func)
                 def wrapper(*args: P.args, **kwargs: P.kwargs) -> R:
                     assert self.cls is not None
@@ -72,5 +82,24 @@ class scoped_collect(CollectContext):
                     return func(instance, *args, **kwargs)
 
                 return wrapper
+
+            @staticmethod
+            def implements(
+                fn: Fn[Callable[Concatenate[CR, OutP], Any], Any], *args: OutP.args, **kwargs: OutP.kwargs
+            ) -> Detour1[WrapCall[..., CR], OutP]:
+                def inner(impl: Callable[Concatenate[Any, P], R] | FnImplementEntity[Callable[P, R]]):
+                    if not isinstance(impl, FnImplementEntity):
+                        if not hasattr(impl, "__wrapped__"):
+                            impl_call = LocalEndpoint.ensure_self(impl)
+                        else:
+                            impl_call: Callable[P, R] = impl  # type: ignore
+
+                        impl = FnImplementEntity(impl_call)
+
+                    impl.add_target(fn, *args, **kwargs)
+                    self.todo_list[impl] = None
+                    return impl
+
+                return inner  # type: ignore
 
         return LocalEndpoint

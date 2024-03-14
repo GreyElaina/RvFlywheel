@@ -41,11 +41,9 @@ with CollectContext().collect_scope() as cx:
     class greet_implements(m := scoped_collect.globals().target, static=True):
         env = InstanceOf(str)
 
-        @m.collect
-        @greet.implements(name="Teague")
-        @greet.implements(name="Grey")
-        @m.ensure_self
-        def greet_teague(self, name: str) -> str:
+        @m.implements(greet, name="Teague")
+        @m.implements(greet, name="Grey")
+        def greet_someone(self, name: str) -> str:
             return f"Stargaztor, {self.env}"
 
 

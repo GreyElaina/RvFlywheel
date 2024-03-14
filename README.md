@@ -1,6 +1,6 @@
 # Ryanvk Flywheel
 
-Ryanvk Flywheel 是一个 Ryanvk-style 的 utility，其提供强大的 `Fn`、`FnOverload`，实现了在单一入口店上的几近*完美*的自由重载。  
+Ryanvk Flywheel 是一个 Ryanvk-style 的 utility，其提供强大的 `Fn`、`FnOverload`，实现了在单一入口点上的几近*完美*的自由重载。  
 ...而更为可贵的是，Flywheel 具有*前沿级*的类型支持。
 
 这个库是专门为 Avilla 轻量化定制的，你可以在[这里](https://github.com/GraiaProject/Avilla/tree/master/avilla/core/flywheel) 找到与本仓库相同的内容，相比标准版的 Ryanvk，其体量仅为其一半不到。  
@@ -208,9 +208,9 @@ class greet_implements(m := scoped_collect.globals().target, static=True):
     def greet_teague(self, name: str) -> str:
         return "Stargaztor, but in name only."
 
-    @m.collect
-    @greet.implements(name="Grey")
-    @m.ensure_self
+    # 上面的写法未免过于冗长，可以考虑使用这种写法，基本等效。
+
+    @m.implements(greet, name="Grey")
     def greet_grey(self, name: str) -> str:
         return "Symbol, the Founder."
 ```
@@ -249,7 +249,16 @@ def greet_stargaztor(name: str) -> str:
 
 他等同于分别调用 `Fn.implements` 方法，但写的更简短，同时你依旧能获得 Flywheel 前沿级的类型支持。
 
-当你配合 `scoped_collect` 使用时，请注意将 `Fn.implements` 调用*夹*在 `m.collect` 与 `m.ensure_self` 中间：
+当你配合 `scoped_collect` 使用时，可以直接使用 `m.implements` 方法，其将自动处理 `m.collect` 与 `m.ensure_self`。
+
+```python
+@m.implements(greet, name="Teague")
+@m.implements(greet, name="Grey")
+def greet_stargaztor(self, name: str) -> str:
+    return "Stargaztor"
+```
+
+如果执意想要使用原始的方式，请注意将 `Fn.implements` 调用*夹*在 `m.collect` 与 `m.ensure_self` 中间：
 
 ```python
 @m.collect

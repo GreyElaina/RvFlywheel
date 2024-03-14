@@ -20,7 +20,7 @@ class FnImplementEntity(Generic[CR], BaseEntity):
     def __init__(self, impl: CR):
         self.targets = []
         self.impl = impl
-    
+
     def add_target(self, fn: Fn[Callable[Concatenate[Any, P], Any], Any], *args: P.args, **kwargs: P.kwargs):
         self.targets.append((fn, args, kwargs))
 

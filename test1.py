@@ -35,15 +35,11 @@ from flywheel.context import CollectContext, InstanceContext
 from flywheel.globals import global_collect
 from flywheel.scoped import scoped_collect
 
-with CollectContext().collect_scope() as cx:
-
-    class greet_implements(m := scoped_collect.globals().target, static=True):
-        env = InstanceOf(str)
-
-        @m.impl(greet, name="Teague")
-        @m.impl(greet, name="Grey")
-        def greet_someone(self, name: str) -> str:
-            return f"Stargaztor, {self.env}"
+@global_collect
+@greet.impl(name="Teague")
+@greet.impl(name="Grey")
+def greet_someone(name: str) -> str:
+    return "Stargaztor"
 
 
 with InstanceContext().scope() as ins:

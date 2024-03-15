@@ -241,6 +241,7 @@ class greet_implements(m := scoped_collect.env().target, static=True):
 Flywheel 允许你这么做...：
 
 ```python
+@global_collect
 @greet.impl(name="Teague")
 @greet.impl(name="Grey")
 def greet_stargaztor(name: str) -> str:

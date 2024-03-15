@@ -23,16 +23,16 @@ class FnOverload(Generic[TSignature, TCollectValue, TCallValue]):
         return FnOverloadAgentDescriptor(self)
 
     def digest(self, collect_value: TCollectValue) -> TSignature:
-        ...
+        raise NotImplementedError
 
     def collect(self, scope: dict, signature: TSignature) -> dict[Callable, None]:
-        ...
+        raise NotImplementedError
 
     def harvest(self, scope: dict, call_value: TCallValue) -> dict[Callable, None]:
-        ...
+        raise NotImplementedError
 
     def access(self, scope: dict, signature: TSignature) -> dict[Callable, None] | None:
-        ...
+        raise NotImplementedError
 
 
 @dataclass(slots=True)

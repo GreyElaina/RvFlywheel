@@ -60,22 +60,22 @@ class FnCompose:
         r = reduce(lambda x, y: {i: None for i in x if i in y}, col, init)
         return HarvestWrapper(r)
 
-    def recording(self, record: FnRecord, implement: Callable):
+    def recording(self, record: FnRecord, implement: CT) -> OverloadRecorder[CT]:
         return OverloadRecorder(record, implement)
 
     @staticmethod
-    def use_recorder(func: Callable[Concatenate[FC, OverloadRecorder, CT, P], R]):
+    def use_recorder(func: Callable[Concatenate[FC, OverloadRecorder[CT], P], R]):
         def wrapper(self: FC, record: FnRecord, implement: CT, *args: P.args, **kwargs: P.kwargs) -> R:
             with self.recording(record, implement) as recorder:
-                return func(self, recorder, implement, *args, **kwargs)
+                return func(self, recorder, *args, **kwargs)
 
         return wrapper
 
 
 @dataclass(slots=True)
-class OverloadRecorder:
+class OverloadRecorder(Generic[CT]):
     target: FnRecord
-    implement: Callable
+    implement: CT
     operators: list[tuple[str, FnOverload, Any]] = field(default_factory=list)
 
     def __enter__(self):

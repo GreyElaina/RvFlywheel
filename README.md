@@ -38,7 +38,7 @@ class greet(FnCompose):
     # ...并在 collect 方法中引用。
     # 这里一并使用 FnCompose.use_recorder 避免过于繁琐的调用。
     @FnCompose.use_recorder
-    def collect(self, recorder: OverloadRecorder, implement: ShapeCall, *, name: str):
+    def collect(self, recorder: OverloadRecorder[ShapeCall], *, name: str):
         recorder.use(self.name, name)
 ```
 
@@ -111,7 +111,7 @@ Flywheel 的重载机制是基于 `FnOverload` 的实现，其包含了以下 4 
 - `digest`: 将收集实现时提供的参数 (`Fn.impl` 方法) 转换为可保存的签名对象；
 - `collect`: 利用签名所蕴含的参数，在自己的命名空间中配置用于存放实现引用的集合；
 - `harvest`: 根据传入的值，在命名空间中匹配相应的集合；
-- `access`: 根据传入的签名，从命名空间中匹配相应的集合；
+- `access`: 根据传入的签名，从命名空间中匹配相应的集合。
 
 这里使用集合来在命名空间中保存实现的引用，是将一项 Overload 当成标记在引用上的*标签*，这样我们就能对不同的参数使用灵活的重载配置，并最终通过交集来找到对应的实现。
 
@@ -125,23 +125,32 @@ class SimpleOverloadSignature:
 
 class SimpleOverload(FnOverload[SimpleOverloadSignature, Any, Any]):
     def digest(self, collect_value: Any) -> SimpleOverloadSignature:
+        # 将收集实现时提供的参数转换为可保存的签名对象
         return SimpleOverloadSignature(collect_value)
 
     def collect(self, scope: dict, signature: SimpleOverloadSignature) -> dict[Callable, None]:
         if signature.value not in scope:
-            target = scope[signature.value] = {}
+            # 在命名空间中配置用于存放实现引用的集合，如果没有就开辟，否则复用。
+            # 这里会用 dict[Callable, None]，原因是我们需要有序 +　唯一。
+            target = scope[signature.value] = {}  
         else:
             target = scope[signature.value]
 
         return target
 
     def harvest(self, scope: dict, call_value: Any) -> dict[Callable, None]:
+        # 对于 Flywheel，"匹配" 是更准确的说法。
+        # 这允许我们对调用值实现泛匹配。
+
         if call_value in scope:
             return scope[call_value]
 
         return {}
 
     def access(self, scope: dict, signature: SimpleOverloadSignature) -> dict[Callable, None] | None:
+        # 根据传入的签名，从命名空间中匹配相应的集合。
+        # 从 Ryanvk 原实现继承来的，Flywheel 里似乎不要求必须实现。
+
         if signature.value in scope:
             return scope[signature.value]
 ```

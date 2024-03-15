@@ -35,6 +35,7 @@ from flywheel.context import CollectContext, InstanceContext
 from flywheel.globals import global_collect
 from flywheel.scoped import scoped_collect
 
+
 @global_collect
 @greet.impl(name="Teague")
 @greet.impl(name="Grey")

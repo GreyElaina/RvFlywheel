@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from sys import path
-from typing import Protocol, TypeVar
+from typing import Callable, Protocol, TypeVar
 
 from flywheel.builtins.overloads import SimpleOverload, TypeOverload
 from flywheel.fn.base import Fn
@@ -22,12 +22,8 @@ class test(FnCompose):
 
         return entities.first(value)
 
-    class ShapeCall(Protocol[T]):
-        def __call__(self, value: type[T]) -> T:
-            ...
-
     @FnCompose.use_recorder
-    def collect(self, recorder: OverloadRecorder, implement: ShapeCall[T], *, type: type[T]):
+    def collect(self, recorder: OverloadRecorder[Callable[[type[T]], T]], *, type: type[T]):
         recorder.use(self.sim, type)
 
 
@@ -49,14 +45,14 @@ import timeit
 
 from viztracer import VizTracer
 
-tracer = VizTracer()
-tracer.start()
+#tracer = VizTracer()
+#tracer.start()
 
-num = 10000
+num = 100000
 delta_a = timeit.timeit("test_impl_str('11')", globals=globals(), number=num)
-delta_b = timeit.timeit("test.call(str)", globals=globals(), number=num)
+delta_b = timeit.timeit("test(str)", globals=globals(), number=num)
 
-print(f"test_impl_int: {delta_a}, call: {delta_b}, {delta_b/delta_a}")
+print(f"test_impl_int: {delta_a}, call: {delta_b}, {delta_b/delta_a}, {num/delta_a}o/s, {num/delta_b}o/s")
 
-tracer.stop()
-tracer.save()  # also takes output_file as an optional argument
+#tracer.stop()
+#tracer.save()  # also takes output_file as an optional argument

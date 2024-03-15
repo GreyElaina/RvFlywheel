@@ -249,7 +249,7 @@ def greet_stargaztor(name: str) -> str:
 
 他等同于分别调用 `Fn.implements` 方法，但写的更简短，同时你依旧能获得 Flywheel 前沿级的类型支持。
 
-当你配合 `scoped_collect` 使用时，可以直接使用 `m.implements` 方法，其将自动处理 `m.collect` 与 `m.ensure_self`。
+当你配合 `scoped_collect` 使用时，可以直接使用 `m.impl` 方法，其将自动处理 `m.collect` 与 `m.ensure_self`。
 
 ```python
 @m.impl(greet, name="Teague")
@@ -346,7 +346,7 @@ GLOBAL_INSTANCE_CONTEXT.instances[...] = ...
 
 ## 代数效应 - 示例
 
-由于我们将 Fn 的入口点 (`Fn.call`) 与实际实现分开，我们可以借助这一点实现错误处理的代数效应。
+由于我们将 Fn 的入口点 (`Fn.call`) 与实际实现分开，我们可以借助这一点实现错误处理等应用的代数效应。
 
 ```python
 # TODO: Algotrium Effect on Flywheel

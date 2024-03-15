@@ -54,12 +54,12 @@ class greet(FnCompose):
 from flywheel.globals import global_collect
 
 @global_collect
-@greet.implements(name="Teague")
+@greet.impl(name="Teague")
 def greet_teague(name: str) -> str:
     return "Stargaztor, but in name only."
 
 @global_collect
-@greet.implements(name="Grey")
+@greet.impl(name="Grey")
 def greet_grey(name: str) -> str:
     return "Symbol, the Founder."
 ```
@@ -108,7 +108,7 @@ class greet(FnCompose):
 
 Flywheel 的重载机制是基于 `FnOverload` 的实现，其包含了以下 4 个主要功能：
 
-- `digest`: 将收集实现时提供的参数 (`Fn.implements` 方法) 转换为可保存的签名对象；
+- `digest`: 将收集实现时提供的参数 (`Fn.impl` 方法) 转换为可保存的签名对象；
 - `collect`: 利用签名所蕴含的参数，在自己的命名空间中配置用于存放实现引用的集合；
 - `harvest`: 根据传入的值，在命名空间中匹配相应的集合；
 - `access`: 根据传入的签名，从命名空间中匹配相应的集合；
@@ -179,12 +179,12 @@ with local_cx.lookup_scope():
 from flywheel.globals import local_collect
 
 @local_collect
-@greet.implements(name="Teague")
+@greet.impl(name="Teague")
 def greet_teague(name: str) -> str:
     return "Stargaztor, but in name only."
 
 @local_collect
-@greet.implements(name="Grey")
+@greet.impl(name="Grey")
 def greet_grey(name: str) -> str:
     return "Symbol, the Founder."
 ```
@@ -203,7 +203,7 @@ from flywheel.scoped import scoped_collect
 
 class greet_implements(m := scoped_collect.globals().target, static=True):
     @m.collect
-    @greet.implements(name="Teague")
+    @greet.impl(name="Teague")
     @m.ensure_self
     def greet_teague(self, name: str) -> str:
         return "Stargaztor, but in name only."
@@ -241,13 +241,13 @@ class greet_implements(m := scoped_collect.env().target, static=True):
 Flywheel 允许你这么做...：
 
 ```python
-@greet.implements(name="Teague")
-@greet.implements(name="Grey")
+@greet.impl(name="Teague")
+@greet.impl(name="Grey")
 def greet_stargaztor(name: str) -> str:
     return f"Stargaztor"
 ```
 
-他等同于分别调用 `Fn.implements` 方法，但写的更简短，同时你依旧能获得 Flywheel 前沿级的类型支持。
+他等同于分别调用 `Fn.impl` 方法，但写的更简短，同时你依旧能获得 Flywheel 前沿级的类型支持。
 
 当你配合 `scoped_collect` 使用时，可以直接使用 `m.impl` 方法，其将自动处理 `m.collect` 与 `m.ensure_self`。
 
@@ -258,12 +258,12 @@ def greet_stargaztor(self, name: str) -> str:
     return "Stargaztor"
 ```
 
-如果执意想要使用原始的方式，请注意将 `Fn.implements` 调用*夹*在 `m.collect` 与 `m.ensure_self` 中间：
+如果执意想要使用原始的方式，请注意将 `Fn.impl` 调用*夹*在 `m.collect` 与 `m.ensure_self` 中间：
 
 ```python
 @m.collect
-@greet.implements(name="Teague")
-@greet.implements(name="Grey")
+@greet.impl(name="Teague")
+@greet.impl(name="Grey")
 @m.ensure_self
 def greet_teague(self, name: str) -> str:
     return f"Stargaztor."

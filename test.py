@@ -1,14 +1,12 @@
 from __future__ import annotations
 
 from sys import path
-
-from flywheel.fn.record import FnRecord
-
 from typing import Protocol, TypeVar
 
 from flywheel.builtins.overloads import SimpleOverload, TypeOverload
 from flywheel.fn.base import Fn
 from flywheel.fn.compose import FnCompose, OverloadRecorder
+from flywheel.fn.record import FnRecord
 from flywheel.globals import global_collect
 
 T = TypeVar("T")
@@ -39,11 +37,11 @@ def test_impl_str(value: type[str]):
     return "11"
 
 
-global_collect(test.implements(type=str)(test_impl_str))
+global_collect(test.impl(type=str)(test_impl_str))
 
 
 @global_collect
-@test.implements(type=int)
+@test.impl(type=int)
 def test_impl_int(value: type[int]):
     return 11
 #reveal_type(test)

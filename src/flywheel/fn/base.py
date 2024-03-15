@@ -67,7 +67,7 @@ class Fn(Generic[CCollect, CCall], BaseEntity):
         return wrapper
 
     @property
-    def implements(self: Fn[Callable[Concatenate[CR, OutP], Any], Any]) -> Callable[OutP, Detour[WrapCall[..., CR], OutP]]:
+    def impl(self: Fn[Callable[Concatenate[CR, OutP], Any], Any]) -> Callable[OutP, Detour[WrapCall[..., CR], OutP]]:
         def wrapper(*args: OutP.args, **kwargs: OutP.kwargs):
             def inner(impl: Callable[P, R] | FnImplementEntity[Callable[P, R]]):
                 if not isinstance(impl, FnImplementEntity):

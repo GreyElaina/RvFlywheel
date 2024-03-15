@@ -87,4 +87,4 @@ class FnImplementEntityAgent(Generic[CR]):
             # 这种情况下无法确认要 call 哪个 fn
             raise RuntimeError("super() is only available for single target.")
 
-        return self.entity.targets[0][0].call
+        return self.entity.targets[0][0].__call__

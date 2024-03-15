@@ -49,6 +49,6 @@ with CollectContext().collect_scope() as cx:
 with InstanceContext().scope() as ins:
     ins.instances[str] = "test"
 
-    print(greet.call("Teague"))
-    print(greet.call("Grey"))
-    print(greet.call("Hizuki"))
+    print(greet("Teague"))
+    print(greet("Grey"))
+    print(greet("Hizuki"))

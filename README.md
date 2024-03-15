@@ -67,16 +67,16 @@ def greet_grey(name: str) -> str:
 然后我们调用。
 
 ```python
->>> greet.call("Teague")
+>>> greet("Teague")
 'Stargaztor, but in name only.'
->>> greet.call("Grey")
+>>> greet("Grey")
 'Symbol, the Founder.'
 ```
 
 看上去很不错，按照预期的调度到了相应的实现上；如果我们输入一个*未实现*的字段会怎么样呢？
 
 ```python
->>> greet.call("Hizuki")
+>>> greet("Hizuki")
 NotImplementedError: cannot lookup any implementation with given arguments
 ```
 
@@ -100,7 +100,7 @@ class greet(FnCompose):
 这种方法可以提供一种极其灵活的默认实现机制：于是现在我们可以调用 `greet` 了。
 
 ```python
->>> greet.call("Hizuki")
+>>> greet("Hizuki")
 'Ordinary, Hizuki.'
 ```
 
@@ -218,9 +218,9 @@ class greet_implements(m := scoped_collect.globals().target, static=True):
 这段代码使用 `scoped_collect` 实现了和我们最初给出的两个 `greet_xxx` 一样的效果。
 
 ```python
->>> greet.call("Teague")
+>>> greet("Teague")
 'Stargaztor, but in name only.'
->>> greet.call("Grey")
+>>> greet("Grey")
 'Symbol, the Founder.'
 ```
 
@@ -303,7 +303,7 @@ with collect_cx.collect_scope():
 with instance_cx.scope(), collect_cx.lookup_scope():
     instance_cx.instances[cls] = cls(...)
 
-    # then normally Fn.call
+    # then normally Fn
 ```
 
 ### 向内提供信息
@@ -327,7 +327,7 @@ class sth_implements(m := scoped_collect.env().target, static=True):
 with instance_cx.scope(), collect_cx.lookup_scope():
     instance_cx.instances[ClientSession] = self.aiohttp_session
 
-    await fn.call(10)
+    await fn(10)
 ```
 
 从该示例中你也可以了解到 Flywheel 对异步的支持，理论上也能一并支持生成器，异步生成器甚至 `contextlib.contextmanager`，但如果出了问题，欢迎汇报至 issues.
@@ -346,7 +346,7 @@ GLOBAL_INSTANCE_CONTEXT.instances[...] = ...
 
 ## 代数效应 - 示例
 
-由于我们将 Fn 的入口点 (`Fn.call`) 与实际实现分开，我们可以借助这一点实现错误处理等应用的代数效应。
+由于我们将 Fn 的入口点 (`Fn`) 与实际实现分开，我们可以借助这一点实现错误处理等应用的代数效应。
 
 ```python
 # TODO: Algotrium Effect on Flywheel

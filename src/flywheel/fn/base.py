@@ -93,5 +93,5 @@ class Fn(Generic[CCollect, CCall], BaseEntity):
             raise NotImplementedError("cannot find any record with given fn declaration")
 
     @property
-    def call(self) -> CCall:
+    def __call__(self) -> CCall:
         return self._call  # type: ignore

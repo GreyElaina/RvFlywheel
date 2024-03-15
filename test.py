@@ -46,8 +46,6 @@ global_collect(test.implements(type=str)(test_impl_str))
 @test.implements(type=int)
 def test_impl_int(value: type[int]):
     return 11
-
-
 #reveal_type(test)
 import timeit
 

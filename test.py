@@ -3,7 +3,7 @@ from __future__ import annotations
 from sys import path
 from typing import Callable, Protocol, TypeVar
 
-from flywheel.builtins.overloads import SimpleOverload, TypeOverload
+from flywheel.overloads import SimpleOverload, TypeOverload
 from flywheel.fn.base import Fn
 from flywheel.fn.compose import FnCompose, OverloadRecorder
 from flywheel.fn.record import FnRecord
@@ -24,6 +24,7 @@ class test(FnCompose):
 
     @FnCompose.use_recorder
     def collect(self, recorder: OverloadRecorder[Callable[[type[T]], T]], *, type: type[T]):
+        recorder.implement
         recorder.use(self.sim, type)
 
 

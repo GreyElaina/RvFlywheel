@@ -1,6 +1,6 @@
 from typing import Protocol
 
-from flywheel.builtins.overloads import SimpleOverload
+from flywheel.overloads import SimpleOverload
 from flywheel.fn.base import Fn
 from flywheel.fn.compose import FnCompose, OverloadRecorder
 from flywheel.fn.record import FnRecord
@@ -26,11 +26,11 @@ class greet(FnCompose):
 
     # 使用 FnCompose.use_recorder 避免过于繁琐的调用。
     @FnCompose.use_recorder
-    def collect(self, recorder: OverloadRecorder, implement: ShapeCall, *, name: str):
+    def collect(self, recorder: OverloadRecorder[ShapeCall], *, name: str):
         recorder.use(self.name, name)
 
 
-from flywheel.builtins.instance_of import InstanceOf
+from flywheel.instance_of import InstanceOf
 from flywheel.context import CollectContext, InstanceContext
 from flywheel.globals import global_collect
 from flywheel.scoped import scoped_collect

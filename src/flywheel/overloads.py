@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Callable, Type
 
-from ..fn.overload import FnOverload
+from .fn.overload import FnOverload
 
 
 @dataclass(eq=True, frozen=True)

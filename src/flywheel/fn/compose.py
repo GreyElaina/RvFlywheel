@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, Any, Callable, Final, Generic, TypeVar, overlo
 
 from typing_extensions import Concatenate
 
-from ..builtins.overloads import SINGLETON_OVERLOAD
+from ..overloads import SINGLETON_OVERLOAD
 from ..typing import CT, P1, Collectable, ImplementSample, P, R
 from .overload import FnOverload, FnOverloadAgent, TCollectValue
 from .record import FnImplement, FnRecord

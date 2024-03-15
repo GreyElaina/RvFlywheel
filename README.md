@@ -18,7 +18,7 @@ from typing import Protocol
 from flywheel.fn.base import Fn
 from flywheel.fn.compose import FnCompose, OverloadRecorder
 from flywheel.fn.record import FnRecord
-from flywheel.builtins.overloads import SimpleOverload
+from flywheel.overloads import SimpleOverload
 
 @Fn.declare
 class greet(FnCompose):
@@ -91,7 +91,7 @@ class greet(FnCompose):
         entities = self.harvest_from(self.name.harvest(record, name))
         # entities 会自动读取到 collect 中对于 implement 参数的类型。
 
-        if not entities:
+        if not entities:  # 判断是否存在符合条件的实现
             return f"Ordinary, {name}."
 
         return entities.first(name)
@@ -113,7 +113,8 @@ Flywheel 的重载机制是基于 `FnOverload` 的实现，其包含了以下 4 
 - `harvest`: 根据传入的值，在命名空间中匹配相应的集合；
 - `access`: 根据传入的签名，从命名空间中匹配相应的集合。
 
-这里使用集合来在命名空间中保存实现的引用，是将一项 Overload 当成标记在引用上的*标签*，这样我们就能对不同的参数使用灵活的重载配置，并最终通过交集来找到对应的实现。
+这里使用集合来在命名空间中保存实现的引用，是将一项 Overload 当成标记在引用上的*标签*使用，这样我们就能对不同的参数使用灵活的重载配置，并最终通过交集来找到对应的实现。
+甚至，我们也可以籍由构造具有复杂逻辑的 `if / match` 链，实现一些难以想象的逻辑。
 
 以 `SimpleOverload` 为例：
 
@@ -155,7 +156,7 @@ class SimpleOverload(FnOverload[SimpleOverloadSignature, Any, Any]):
             return scope[signature.value]
 ```
 
-你可以尝试借由这个例子来实现一个依据调用时值 (`call_value`) 的类型来找到对应的实现的 `TypeOverload`，作为参考答案，你可以在 `flywheel.builtins.overloads` 模块中找到同名的实现。
+你可以尝试借由这个例子来实现一个依据调用时值 (`call_value`) 的类型来找到对应的实现的 `TypeOverload`，作为参考答案，你可以在 `flywheel.overloads` 模块中找到同名的实现。
 
 对于 `FnOverload` 来说，他不一定要搜索尽可能多的实现 —— 这根据实际情况来决定：如果你希望你的 Fn 表现的像是个事件系统，这种情况下你最好找到尽可能多的实现 —— 不幸的，我们没有提供什么 `greed` 参数，因此你需要自己实现。
 
@@ -321,7 +322,7 @@ with instance_cx.scope(), collect_cx.lookup_scope():
 我们提供了可以自动访问当前实例上下文的描述符 `InstanceOf`，通过这一措施，你可以方便的访问实例上下文中的内容。
 
 ```python
-from flywheel.builtins.instance_of import InstanceOf
+from flywheel.instance_of import InstanceOf
 
 from aiohttp import ClientSession
 

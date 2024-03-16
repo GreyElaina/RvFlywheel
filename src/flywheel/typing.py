@@ -9,12 +9,10 @@ if TYPE_CHECKING:
     from .fn.implement import FnImplementEntity
 
 
-T = TypeVar("T")
 R = TypeVar("R", covariant=True)
 R1 = TypeVar("R1", covariant=True)
 P = ParamSpec("P")
 P1 = ParamSpec("P1")
-Q = TypeVar("Q", contravariant=True)
 InP = ParamSpec("InP")
 OutP = ParamSpec("OutP")
 CR = TypeVar("CR", covariant=True, bound=Callable)

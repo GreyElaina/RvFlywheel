@@ -6,7 +6,7 @@ from typing_extensions import Concatenate
 
 from ..entity import BaseEntity
 from ..globals import iter_layout
-from ..typing import CR, CT, R1, Detour, InP, OutP, P, R, WrapCall
+from ..typing import CR, CT, R1, AssignKeeper, Call, InP, OutP, P, R
 from .compose import FnCompose, OverloadRecorder
 from .implement import FnImplementEntity
 
@@ -67,7 +67,7 @@ class Fn(Generic[CCollect, CCall], BaseEntity):
         return wrapper
 
     @property
-    def impl(self: Fn[Callable[Concatenate[CR, OutP], Any], Any]) -> Callable[OutP, Detour[WrapCall[..., CR], OutP]]:
+    def impl(self: Fn[Callable[Concatenate[CR, OutP], Any], Any]) -> Callable[OutP, AssignKeeper[Call[..., CR], OutP]]:
         def wrapper(*args: OutP.args, **kwargs: OutP.kwargs):
             def inner(impl: Callable[P, R] | FnImplementEntity[Callable[P, R]]):
                 if not isinstance(impl, FnImplementEntity):

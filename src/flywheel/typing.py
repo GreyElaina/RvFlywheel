@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, Callable, Protocol, TypeVar
 
-from typing_extensions import ParamSpec, Concatenate
+from typing_extensions import Concatenate, ParamSpec
 
 if TYPE_CHECKING:
     from .entity import BaseEntity
@@ -27,22 +27,22 @@ class Collectable(Protocol[InP]):
         ...
 
 
-class WrapCall(Protocol[P, R]):
+class Call(Protocol[P, R]):
     def __call__(self, *args: P.args, **kwargs: P.kwargs) -> R:
         ...
 
 
-class Detour(Protocol[R, OutP]):
+class AssignKeeper(Protocol[R, OutP]):
     def __call__(
-        self: Detour[WrapCall[..., Callable[P1, R1]], OutP],
+        self: AssignKeeper[Call[..., Callable[P1, R1]], OutP],
         implement: Callable[P1, R1] | FnImplementEntity[Callable[P1, R1]],
     ) -> FnImplementEntity[Callable[P1, R1]]:
         ...
 
 
-class Detour1(Protocol[R, OutP]):
+class AssignKeeperCls(Protocol[R, OutP]):
     def __call__(
-        self: Detour1[WrapCall[..., Callable[P1, R1]], OutP],
+        self: AssignKeeperCls[Call[..., Callable[P1, R1]], OutP],
         implement: Callable[Concatenate[Any, P1], R1] | FnImplementEntity[Callable[P1, R1]],
     ) -> FnImplementEntity[Callable[P1, R1]]:
         ...

@@ -263,6 +263,8 @@ def greet_stargaztor(name: str) -> str:
 当你配合 `scoped_collect` 使用时，可以直接使用 `m.impl` 方法，其将自动处理 `m.collect` 与 `m.ensure_self`。
 
 ```python
+# 不需要手动调用 `m.collect` 与 `m.ensure_self`。
+
 @m.impl(greet, name="Teague")
 @m.impl(greet, name="Grey")
 def greet_stargaztor(self, name: str) -> str:

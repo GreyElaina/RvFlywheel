@@ -284,7 +284,7 @@ def greet_teague(self, name: str) -> str:
 
 ## 实例上下文
 
-实例上下文 (`InstanceContext`) 是 Flywheel 访问局部命名空间中实例的桥梁，此外，你也可以透过这一特效，向 `scoped_collect` 中隐式传递参数，实现依赖注入。  
+实例上下文 (`InstanceContext`) 是 Flywheel 访问局部命名空间中实例的桥梁，此外，你也可以透过这一特性，向 `scoped_collect` 中隐式传递参数，实现依赖注入。  
 此外，全局实例上下文也在 `flywheel.globals` 模块中，可供君自由取用。
 
 ```python

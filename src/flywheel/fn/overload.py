@@ -31,7 +31,8 @@ class FnOverload(Generic[TSignature, TCollectValue, TCallValue]):
         if name not in record.scopes:
             record.scopes[name] = {}
 
-        return self.collect(record.scopes[name], self.digest(collect_value))
+        collection = self.collect(record.scopes[name], self.digest(collect_value))
+        collection[implement] = None
 
     def digest(self, collect_value: TCollectValue) -> TSignature:
         raise NotImplementedError

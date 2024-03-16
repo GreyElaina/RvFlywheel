@@ -3,7 +3,7 @@ from __future__ import annotations
 import functools
 from collections import defaultdict
 from contextvars import ContextVar, copy_context
-from typing import Any, Callable, Generator
+from typing import Any, Callable, Generator, Tuple
 
 from .context import CollectContext, InstanceContext
 from .typing import P, R, TEntity
@@ -12,7 +12,7 @@ GLOBAL_COLLECT_CONTEXT = CollectContext()
 GLOBAL_INSTANCE_CONTEXT = InstanceContext()
 
 COLLECTING_CONTEXT_VAR = ContextVar("CollectingContext", default=GLOBAL_COLLECT_CONTEXT)
-LOOKUP_LAYOUT_VAR: ContextVar[tuple[CollectContext, ...]] = ContextVar("LookupContext", default=(GLOBAL_COLLECT_CONTEXT,))
+LOOKUP_LAYOUT_VAR = ContextVar[Tuple[CollectContext, ...]]("LookupContext", default=(GLOBAL_COLLECT_CONTEXT,))
 INSTANCE_CONTEXT_VAR = ContextVar("InstanceContext", default=GLOBAL_INSTANCE_CONTEXT)
 
 ITER_BUCKET_VAR: ContextVar[defaultdict[Any, list[int]]] = ContextVar("LAYOUT_ITER_COLLECTIONS")

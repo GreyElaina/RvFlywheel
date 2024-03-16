@@ -45,7 +45,7 @@ class Fn(Generic[CCollect, CCall], BaseEntity):
     @property
     def impl(
         self: Fn[Callable[Concatenate[OverloadRecorder[CR], OutP], Any], Any],
-    ) -> Callable[OutP, AssignKeeper[Call[..., CR], OutP]]:
+    ) -> Callable[OutP, AssignKeeper[Call[..., CR]]]:
         def wrapper(*args: OutP.args, **kwargs: OutP.kwargs):
             def inner(impl: Callable[P, R] | FnImplementEntity[Callable[P, R]]):
                 if not isinstance(impl, FnImplementEntity):

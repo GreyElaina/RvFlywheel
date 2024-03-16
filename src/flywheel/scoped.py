@@ -86,7 +86,7 @@ class scoped_collect(CollectContext):
             @staticmethod
             def impl(
                 fn: Fn[Callable[Concatenate[CR, OutP], Any], Any], *args: OutP.args, **kwargs: OutP.kwargs
-            ) -> AssignKeeperCls[Call[..., CR], OutP]:
+            ) -> AssignKeeperCls[Call[..., CR]]:
                 def inner(impl: Callable[Concatenate[Any, P], R] | FnImplementEntity[Callable[P, R]]):
                     if not isinstance(impl, FnImplementEntity):
                         if not hasattr(impl, "__wrapped__"):

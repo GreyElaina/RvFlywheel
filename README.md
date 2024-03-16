@@ -353,7 +353,7 @@ from flywheel.globals import GLOBAL_INSTANCE_CONTEXT
 GLOBAL_INSTANCE_CONTEXT.instances[...] = ...
 ```
 
-事实上，标记为 `static` 的 `scoped_collect`，其自动实例化结果就存储在这里，`static` 参数仅影响这一行为，也就是说 —— 你完全可以自己根据你自己的应用情况，将 `scoped_collect` 的实例化结果保存到全局上下文中。
+事实上，标记为 `static` 的 `scoped_collect`，其自动实例化结果就存储在这里，`static` 参数仅影响这一行为，也就是说 —— 你完全可以自己根据你自己的应用情况，将 `scoped_collect` 的实例化结果保存到这里提到的全局上下文中。
 
 ## 代数效应 - 示例
 

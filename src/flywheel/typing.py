@@ -32,17 +32,17 @@ class Call(Protocol[P, R]):
         ...
 
 
-class AssignKeeper(Protocol[R, OutP]):
+class AssignKeeper(Protocol[R]):
     def __call__(
-        self: AssignKeeper[Call[..., Callable[P1, R1]], OutP],
+        self: AssignKeeper[Call[..., Callable[P1, R1]]],
         implement: Callable[P1, R1] | FnImplementEntity[Callable[P1, R1]],
     ) -> FnImplementEntity[Callable[P1, R1]]:
         ...
 
 
-class AssignKeeperCls(Protocol[R, OutP]):
+class AssignKeeperCls(Protocol[R]):
     def __call__(
-        self: AssignKeeperCls[Call[..., Callable[P1, R1]], OutP],
+        self: AssignKeeperCls[Call[..., Callable[P1, R1]]],
         implement: Callable[Concatenate[Any, P1], R1] | FnImplementEntity[Callable[P1, R1]],
     ) -> FnImplementEntity[Callable[P1, R1]]:
         ...

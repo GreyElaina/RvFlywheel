@@ -1,7 +1,8 @@
 from typing import Protocol
 
 from flywheel.fn.base import Fn
-from flywheel.fn.compose import FnCompose, OverloadRecorder
+from flywheel.fn.compose import FnCompose
+from flywheel.fn.implement import OverloadRecorder
 from flywheel.fn.record import FnRecord
 from flywheel.overloads import SimpleOverload
 

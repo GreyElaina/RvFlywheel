@@ -1,12 +1,12 @@
 from __future__ import annotations
 
+import functools
 from collections import defaultdict
-from contextvars import ContextVar
-from typing import Any, Generator
+from contextvars import ContextVar, copy_context
+from typing import Any, Callable, Generator
 
 from .context import CollectContext, InstanceContext
-from .typing import TEntity
-from .utils import standalone_context
+from .typing import P, R, TEntity
 
 GLOBAL_COLLECT_CONTEXT = CollectContext()
 GLOBAL_INSTANCE_CONTEXT = InstanceContext()
@@ -18,7 +18,15 @@ INSTANCE_CONTEXT_VAR = ContextVar("InstanceContext", default=GLOBAL_INSTANCE_CON
 ITER_BUCKET_VAR: ContextVar[defaultdict[Any, list[int]]] = ContextVar("LAYOUT_ITER_COLLECTIONS")
 
 
-@standalone_context
+def _standalone_context(func: Callable[P, R]) -> Callable[P, R]:
+    @functools.wraps(func)
+    def wrapper(*args: P.args, **kwargs: P.kwargs) -> R:
+        return copy_context().run(func, *args, **kwargs)
+
+    return wrapper
+
+
+@_standalone_context
 def iter_layout(session_id: Any | None = None) -> Generator[CollectContext, None, None]:
     bucket = ITER_BUCKET_VAR.get(None)
     if bucket is None:

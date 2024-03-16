@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from sys import path
-from typing import Callable, Protocol, TypeVar
+from typing import Callable, Protocol, TypeVar, reveal_type
 
 from flywheel.overloads import SimpleOverload, TypeOverload
 from flywheel.fn.base import Fn
@@ -33,7 +33,8 @@ class test(FnCompose):
 def test_impl_str(value: type[str]):
     return "11"
 
-
+reveal_type(test.impl)
+reveal_type(test.impl(type=str))
 global_collect(test.impl(type=str)(test_impl_str))
 
 

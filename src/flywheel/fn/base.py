@@ -1,13 +1,13 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Callable, Generic, Protocol, TypeVar
+from typing import TYPE_CHECKING, Any, Callable, Generic, Protocol, Type, TypeVar
 
 from typing_extensions import Concatenate
 
 from ..entity import BaseEntity
 from ..globals import iter_layout
-from ..typing import CR, CT, R1, AssignKeeper, Call, InP, OutP, P, R
-from .compose import FnCompose, OverloadRecorder
+from ..typing import CR, AssignKeeper, Call, InP, OutP, P, R
+from .compose import FnCompose
 from .implement import FnImplementEntity
 
 if TYPE_CHECKING:
@@ -29,13 +29,7 @@ class ComposeShape(Protocol[CCollect, CCall]):
         ...
 
 
-class SymCompose(Generic[CT], FnCompose):
-    def call(self: SymCompose[Callable[P, R]], record: FnRecord, *args: P.args, **kwargs: P.kwargs) -> R:
-        return self.harvest_from(self.singleton.harvest(record, None))(*args, **kwargs)
-
-    @FnCompose.use_recorder
-    def collect(self, recorder: OverloadRecorder[CT]):
-        recorder.use(self.singleton, None)
+FnDef = Type[ComposeShape[Callable[Concatenate[FnRecord, InP], None], Callable[Concatenate[FnRecord, OutP], R]]]
 
 
 class Fn(Generic[CCollect, CCall], BaseEntity):
@@ -45,26 +39,8 @@ class Fn(Generic[CCollect, CCall], BaseEntity):
         self.desc = compose(self)
 
     @classmethod
-    def symmetric(cls: type[Fn[Callable[[CT], Any], CT]], entity: CT):
-        return cls(SymCompose[CT])
-
-    @classmethod
-    def declare(
-        cls,
-        desc: type[ComposeShape[Callable[Concatenate[FnRecord, InP], R1], Callable[Concatenate[FnRecord, P], R]]],
-    ) -> Fn[Callable[InP, R1], Callable[P, R]]:
+    def declare(cls, desc: FnDef[InP, OutP, R]) -> Fn[Callable[InP, None], Callable[OutP, R]]:
         return cls(desc)  # type: ignore
-
-    @classmethod
-    def override(cls: type[Fn[CCollect, Callable[P, R]]], target: Fn):
-        def wrapper(
-            compose_cls: type[ComposeShape[CCollect, Callable[Concatenate[FnRecord, P], R]]],
-        ) -> Fn[CCollect, Callable[P, R]]:
-            comp = cls.declare(compose_cls)
-            comp.desc.signature = target.desc.signature
-            return comp  # type: ignore
-
-        return wrapper
 
     @property
     def impl(self: Fn[Callable[Concatenate[CR, OutP], Any], Any]) -> Callable[OutP, AssignKeeper[Call[..., CR], OutP]]:

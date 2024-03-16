@@ -1,9 +1,9 @@
 from typing import Protocol
 
-from flywheel.overloads import SimpleOverload
 from flywheel.fn.base import Fn
 from flywheel.fn.compose import FnCompose, OverloadRecorder
 from flywheel.fn.record import FnRecord
+from flywheel.overloads import SimpleOverload
 
 
 @Fn.declare
@@ -11,7 +11,7 @@ class greet(FnCompose):
     name = SimpleOverload("name")
 
     def call(self, record: FnRecord, name: str) -> str:
-        entities = self.harvest_from(self.name.dig(record, name))
+        entities = self.load(self.name.dig(record, name))
         # entities 会自动读取到 collect 中对于 implement 参数的类型并返回。
 
         if not entities:
@@ -28,9 +28,9 @@ class greet(FnCompose):
         recorder.use(self.name, name)
 
 
-from flywheel.instance_of import InstanceOf
 from flywheel.context import CollectContext, InstanceContext
 from flywheel.globals import global_collect
+from flywheel.instance_of import InstanceOf
 from flywheel.scoped import scoped_collect
 
 

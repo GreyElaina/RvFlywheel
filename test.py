@@ -19,11 +19,11 @@ class test(FnCompose):
     sim = SimpleOverload("sim")
 
     def call(self, record: FnRecord, value: type[T]) -> T:
-        entities = self.harvest_from(self.sim.dig(record, value))
+        entities = self.load(self.sim.dig(record, value))
 
         return entities.first(value)
 
-    def collect(self, recorder: OverloadRecorder[Callable[[type[T]], T]], *, type: type[T]):
+    def collect(self, recorder: OverloadRecorder, *, type: type[T]):
         recorder.use(self.sim, type)
 
 

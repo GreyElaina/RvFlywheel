@@ -25,7 +25,7 @@ class greet(FnCompose):
     name = SimpleOverload("name")
 
     def call(self, record: FnRecord, name: str) -> str:
-        entities = self.harvest_from(self.name.dig(record, name))
+        entities = self.load(self.name.dig(record, name))
         # entities 会自动读取到 collect 中对于 implement 参数的类型。
 
         return entities.first(name)
@@ -34,12 +34,8 @@ class greet(FnCompose):
     class ShapeCall(Protocol):
         def __call__(self, name: str) -> str:
             ...
-    
-    # 这里可以换成使用 def implement_sample:
-    # def implement_sample(self, name: str) -> str:
-    #     ...
 
-    # ...并在 collect 方法中引用。
+    # ...并在 collect 方法中引用，这是可选的，仅影响 load 方法的返回类型。
     def collect(self, recorder: OverloadRecorder[ShapeCall], *, name: str):
         recorder.use(self.name, name)
 ```
@@ -90,7 +86,7 @@ class greet(FnCompose):
     name = SimpleOverload("name")
 
     def call(self, record: FnRecord, name: str) -> str:
-        entities = self.harvest_from(self.name.dig(record, name))
+        entities = self.load(self.name.dig(record, name))
         # entities 会自动读取到 collect 中对于 implement 参数的类型。
 
         if not entities:  # 判断是否存在符合条件的实现
@@ -116,7 +112,7 @@ Flywheel 的重载机制是基于 `FnOverload` 的实现，其包含了以下 4 
 - `access`: 根据传入的签名，从命名空间中匹配相应的集合。
 
 这里使用集合来在命名空间中保存实现的引用，是将一项 Overload 当成标记在引用上的*标签*使用，这样我们就能对不同的参数使用灵活的重载配置，并最终通过交集来找到对应的实现。
-甚至，我们也可以籍由构造具有复杂逻辑的 `if / match` 链，实现一些难以想象的逻辑。
+甚至，我们也可以籍由构造具有复杂逻辑的 `if / load` 链，实现一些难以想象的逻辑。
 
 以 `SimpleOverload` 为例：
 

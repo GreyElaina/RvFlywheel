@@ -33,16 +33,16 @@ class FnCompose:
         return FnImplement(self.fn)
 
     @overload
-    def harvest_from(self: ImplementSample[CT], *collections: dict[Callable, None]) -> HarvestWrapper[CT]:
+    def load(self: ImplementSample[CT], *collections: dict[Callable, None]) -> HarvestWrapper[CT]:
         ...
 
     @overload
-    def harvest_from(
+    def load(
         self: Collectable[Concatenate[OverloadRecorder[Callable[P, R]], P1]], *collections: dict[Callable, None]
     ) -> HarvestWrapper[Callable[P, R]]:
         ...
 
-    def harvest_from(self, *collections: dict[Callable, None]):  # type: ignore
+    def load(self, *collections: dict[Callable, None]):  # type: ignore
         if not collections:
             raise TypeError("at least one collection is required")
 

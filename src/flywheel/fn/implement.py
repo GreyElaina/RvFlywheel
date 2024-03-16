@@ -1,8 +1,9 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Callable, Generic, overload
+from dataclasses import dataclass, field
+from typing import TYPE_CHECKING, Any, Callable, Generic
 
-from typing_extensions import Concatenate, Self
+from typing_extensions import Concatenate
 
 from ..entity import BaseEntity
 from ..scoped import scoped_collect
@@ -11,6 +12,30 @@ from .record import FnRecord
 
 if TYPE_CHECKING:
     from .base import Fn
+    from .overload import FnOverload, TCollectValue
+
+
+@dataclass(slots=True)
+class OverloadRecorder(Generic[CR]):
+    target: FnRecord
+    implement: CR
+    operators: list[tuple[str, FnOverload, Any]] = field(default_factory=list)
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.done()
+
+    def done(self):
+        for name, rule, value in self.operators:
+            rule.lay(self.target, value, self.implement, name=name)
+
+        self.target.entities[frozenset(self.operators)] = self.implement
+
+    def use(self, target: FnOverload[Any, TCollectValue, Any], value: TCollectValue, *, name: str | None = None):
+        self.operators.append((name or target.name, target, value))
+        return self
 
 
 class FnImplementEntity(Generic[CR], BaseEntity):
@@ -34,7 +59,8 @@ class FnImplementEntity(Generic[CR], BaseEntity):
             else:
                 record = collector.fn_implements[record_signature] = FnRecord(fn)
 
-            fn.desc.collect(record, self.impl, *args, **kwargs)
+            with OverloadRecorder(record, self.impl) as recorder:
+                fn.desc.collect(recorder, *args, **kwargs)
 
         return self
 
@@ -42,49 +68,9 @@ class FnImplementEntity(Generic[CR], BaseEntity):
         return self.impl(*args, **kwargs)
 
     @property
-    def agent(self):
-        return FnImplementEntityAgent(self)
-
-    @property
     def __call__(self) -> CR:
         return self._call  # type: ignore
 
-    @overload
-    def __get__(self, instance: None, owner: type) -> Self:
-        ...
-
-    @overload
-    def __get__(self, instance: FnImplementEntityAgent, owner: type) -> Self:
-        ...
-
-    @overload
-    def __get__(self, instance: Any, owner: type) -> FnImplementEntityAgent[CR]:
-        ...
-
-    def __get__(self, instance: Any, owner: type):
-        if instance is None or isinstance(instance, FnImplementEntityAgent):
-            return self
-
-        return self.agent
-
-
-class FnImplementEntityAgent(Generic[CR]):
-    entity: FnImplementEntity[CR]
-
-    def __init__(self, entity: FnImplementEntity) -> None:
-        self.entity = entity
-
-    @property
-    def __call__(self) -> CR:
-        def wrapper(*args, **kwargs):
-            return self.entity.impl(*args, **kwargs)
-
-        return wrapper  # type: ignore
-
     @property
     def super(self) -> CR:
-        if len(self.entity.targets) != 1:
-            # 这种情况下无法确认要 call 哪个 fn
-            raise RuntimeError("super() is only available for single target.")
-
-        return self.entity.targets[0][0].__call__
+        return self.targets[0][0].__call__

@@ -22,10 +22,10 @@ from flywheel.overloads import SimpleOverload
 
 @Fn.declare
 class greet(FnCompose):
-    name = SimpleOverload().as_agent()
+    name = SimpleOverload("name")
 
     def call(self, record: FnRecord, name: str) -> str:
-        entities = self.harvest_from(self.name.harvest(record, name))
+        entities = self.harvest_from(self.name.dig(record, name))
         # entities 会自动读取到 collect 中对于 implement 参数的类型。
 
         return entities.first(name)
@@ -34,10 +34,12 @@ class greet(FnCompose):
     class ShapeCall(Protocol):
         def __call__(self, name: str) -> str:
             ...
+    
+    # 这里可以换成使用 def implement_sample:
+    # def implement_sample(self, name: str) -> str:
+    #     ...
 
     # ...并在 collect 方法中引用。
-    # 这里一并使用 FnCompose.use_recorder 避免过于繁琐的调用。
-    @FnCompose.use_recorder
     def collect(self, recorder: OverloadRecorder[ShapeCall], *, name: str):
         recorder.use(self.name, name)
 ```
@@ -85,10 +87,10 @@ NotImplementedError: cannot lookup any implementation with given arguments
 ```python
 @Fn.declare
 class greet(FnCompose):
-    name = SimpleOverload().as_agent()
+    name = SimpleOverload("name")
 
     def call(self, record: FnRecord, name: str) -> str:
-        entities = self.harvest_from(self.name.harvest(record, name))
+        entities = self.harvest_from(self.name.dig(record, name))
         # entities 会自动读取到 collect 中对于 implement 参数的类型。
 
         if not entities:  # 判断是否存在符合条件的实现

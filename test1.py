@@ -8,10 +8,10 @@ from flywheel.fn.record import FnRecord
 
 @Fn.declare
 class greet(FnCompose):
-    name = SimpleOverload().as_agent()
+    name = SimpleOverload("name")
 
     def call(self, record: FnRecord, name: str) -> str:
-        entities = self.harvest_from(self.name.harvest(record, name))
+        entities = self.harvest_from(self.name.dig(record, name))
         # entities 会自动读取到 collect 中对于 implement 参数的类型并返回。
 
         if not entities:
@@ -24,8 +24,6 @@ class greet(FnCompose):
         def __call__(self, name: str) -> str:
             ...
 
-    # 使用 FnCompose.use_recorder 避免过于繁琐的调用。
-    @FnCompose.use_recorder
     def collect(self, recorder: OverloadRecorder[ShapeCall], *, name: str):
         recorder.use(self.name, name)
 

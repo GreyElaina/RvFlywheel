@@ -71,6 +71,8 @@ SINGLETON_SIGN = _SingletonOverloadSignature()
 
 
 class SingletonOverload(FnOverload[_SingletonOverloadSignature, None, None]):
+    SIGNATURE = SINGLETON_SIGN
+
     def digest(self, collect_value) -> _SingletonOverloadSignature:
         return SINGLETON_SIGN
 
@@ -86,4 +88,4 @@ class SingletonOverload(FnOverload[_SingletonOverloadSignature, None, None]):
             return scope[None]
 
 
-SINGLETON_OVERLOAD = SingletonOverload()
+SINGLETON_OVERLOAD = SingletonOverload("singleton")

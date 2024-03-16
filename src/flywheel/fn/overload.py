@@ -1,11 +1,10 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, Callable, Generic, TypeVar, overload
-from typing_extensions import Self, final
+from typing import TYPE_CHECKING, Callable, Generic, TypeVar
+
+from typing_extensions import final
 
 if TYPE_CHECKING:
-    from .compose import FnCompose
     from .record import FnRecord
 
 TOverload = TypeVar("TOverload", bound="FnOverload", covariant=True)
@@ -15,12 +14,24 @@ TSignature = TypeVar("TSignature")
 
 
 class FnOverload(Generic[TSignature, TCollectValue, TCallValue]):
-    def __init__(self) -> None:
-        ...
+    def __init__(self, name: str) -> None:
+        self.name = name
 
     @final
-    def as_agent(self):
-        return FnOverloadAgentDescriptor(self)
+    def dig(self, record: FnRecord, call_value: TCallValue, *, name: str | None = None) -> dict[Callable, None]:
+        name = name or self.name
+        if name not in record.scopes:
+            raise NotImplementedError("cannot lookup any implementation with given arguments")
+
+        return self.harvest(record.scopes[name], call_value)
+
+    @final
+    def lay(self, record: FnRecord, collect_value: TCollectValue, implement: Callable, *, name: str | None = None):
+        name = name or self.name
+        if name not in record.scopes:
+            record.scopes[name] = {}
+
+        return self.collect(record.scopes[name], self.digest(collect_value))
 
     def digest(self, collect_value: TCollectValue) -> TSignature:
         raise NotImplementedError
@@ -33,44 +44,3 @@ class FnOverload(Generic[TSignature, TCollectValue, TCallValue]):
 
     def access(self, scope: dict, signature: TSignature) -> dict[Callable, None] | None:
         raise NotImplementedError
-
-
-@dataclass(slots=True)
-class FnOverloadAgent(Generic[TOverload]):
-    name: str
-    compose: FnCompose
-    fn_overload: TOverload
-
-    def harvest(
-        self: FnOverloadAgent[FnOverload[Any, Any, TCallValue]],
-        record: FnRecord,
-        value: TCallValue,
-        *,
-        name: str | None = None,
-    ):
-        return self.fn_overload.harvest(record.scopes[name or self.name], value)
-
-
-class FnOverloadAgentDescriptor(Generic[TOverload]):
-    name: str
-    fn_overload: TOverload
-
-    def __init__(self, fn_overload: TOverload) -> None:
-        self.fn_overload = fn_overload
-
-    def __set_name__(self, owner: type, name: str):
-        self.name = name
-
-    @overload
-    def __get__(self, instance: None, owner: type) -> Self:
-        ...
-
-    @overload
-    def __get__(self, instance: FnCompose, owner: type) -> FnOverloadAgent[TOverload]:
-        ...
-
-    def __get__(self, instance: FnCompose | None, owner: type):
-        if instance is None:
-            return self
-
-        return FnOverloadAgent(self.name, instance, self.fn_overload)

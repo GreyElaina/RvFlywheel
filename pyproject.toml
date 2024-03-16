@@ -18,6 +18,10 @@ build-backend = "pdm.backend"
 
 [tool.ruff]
 line-length = 135
+
+[tool.ruff.lint]
+extend-select = ["I001"]
+
 [tool.pdm.dev-dependencies]
 dev = [
     "viztracer>=0.16.2",

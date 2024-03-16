@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from typing import Any, Generic, TypeVar, overload
+
 from typing_extensions import Self
 
 from .globals import INSTANCE_CONTEXT_VAR

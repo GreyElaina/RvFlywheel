@@ -8,7 +8,7 @@ from ..entity import BaseEntity
 from ..globals import iter_layout
 from ..typing import CR, AssignKeeper, Call, InP, OutP, P, R
 from .compose import FnCompose
-from .implement import FnImplementEntity
+from .implement import FnImplementEntity, OverloadRecorder
 
 if TYPE_CHECKING:
     from .record import FnRecord
@@ -29,7 +29,7 @@ class ComposeShape(Protocol[CCollect, CCall]):
         ...
 
 
-FnDef = Type[ComposeShape[Callable[Concatenate[FnRecord, InP], None], Callable[Concatenate[FnRecord, OutP], R]]]
+FnDef = Type[ComposeShape[Callable[InP, None], Callable[Concatenate["FnRecord", OutP], R]]]
 
 
 class Fn(Generic[CCollect, CCall], BaseEntity):
@@ -43,7 +43,9 @@ class Fn(Generic[CCollect, CCall], BaseEntity):
         return cls(desc)  # type: ignore
 
     @property
-    def impl(self: Fn[Callable[Concatenate[CR, OutP], Any], Any]) -> Callable[OutP, AssignKeeper[Call[..., CR], OutP]]:
+    def impl(
+        self: Fn[Callable[Concatenate[OverloadRecorder[CR], OutP], Any], Any],
+    ) -> Callable[OutP, AssignKeeper[Call[..., CR], OutP]]:
         def wrapper(*args: OutP.args, **kwargs: OutP.kwargs):
             def inner(impl: Callable[P, R] | FnImplementEntity[Callable[P, R]]):
                 if not isinstance(impl, FnImplementEntity):

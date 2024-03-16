@@ -3,28 +3,27 @@ from __future__ import annotations
 from sys import path
 from typing import Callable, Protocol, TypeVar, reveal_type
 
-from flywheel.overloads import SimpleOverload, TypeOverload
 from flywheel.fn.base import Fn
-from flywheel.fn.compose import FnCompose, OverloadRecorder
+from flywheel.fn.compose import FnCompose
+from flywheel.fn.implement import OverloadRecorder
 from flywheel.fn.record import FnRecord
 from flywheel.globals import global_collect
+from flywheel.overloads import SimpleOverload, TypeOverload
 
 T = TypeVar("T")
 
 
 @Fn.declare
 class test(FnCompose):
-    type = TypeOverload().as_agent()
-    sim = SimpleOverload().as_agent()
+    type = TypeOverload("type")
+    sim = SimpleOverload("sim")
 
     def call(self, record: FnRecord, value: type[T]) -> T:
-        entities = self.harvest_from(self.sim.harvest(record, value))
+        entities = self.harvest_from(self.sim.dig(record, value))
 
         return entities.first(value)
 
-    @FnCompose.use_recorder
     def collect(self, recorder: OverloadRecorder[Callable[[type[T]], T]], *, type: type[T]):
-        recorder.implement
         recorder.use(self.sim, type)
 
 

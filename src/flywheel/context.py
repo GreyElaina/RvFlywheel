@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from contextlib import contextmanager
 from typing import TYPE_CHECKING, Any
+
 from .typing import TEntity
 
 if TYPE_CHECKING:

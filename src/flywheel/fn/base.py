@@ -7,7 +7,7 @@ from typing_extensions import Concatenate
 from ..entity import BaseEntity
 from ..globals import iter_layout
 from ..typing import CR, CT, R1, Detour, InP, OutP, P, R, WrapCall
-from .compose import FnCompose
+from .compose import FnCompose, OverloadRecorder
 from .implement import FnImplementEntity
 
 if TYPE_CHECKING:
@@ -31,11 +31,11 @@ class ComposeShape(Protocol[CCollect, CCall]):
 
 class SymCompose(Generic[CT], FnCompose):
     def call(self: SymCompose[Callable[P, R]], record: FnRecord, *args: P.args, **kwargs: P.kwargs) -> R:
-        return next(iter(self.singleton.harvest(record, None)))(*args, **kwargs)
+        return self.harvest_from(self.singleton.harvest(record, None))(*args, **kwargs)
 
-    def collect(self, record: FnRecord, implement: CT):
-        with self.recording(record, implement) as recorder:
-            recorder.use(self.singleton, None)
+    @FnCompose.use_recorder
+    def collect(self, recorder: OverloadRecorder[CT]):
+        recorder.use(self.singleton, None)
 
 
 class Fn(Generic[CCollect, CCall], BaseEntity):

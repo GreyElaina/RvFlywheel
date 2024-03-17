@@ -19,6 +19,7 @@ CCall = TypeVar("CCall", bound=Callable, covariant=True)
 CCollect = TypeVar("CCollect", bound=Callable, covariant=True)
 C = TypeVar("C", bound=Callable)
 
+
 class ComposeShape(Protocol[CCollect, CCall]):
     @property
     def collect(self) -> CCollect:

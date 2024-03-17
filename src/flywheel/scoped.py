@@ -11,7 +11,7 @@ if TYPE_CHECKING:
     from typing_extensions import Concatenate
 
     from .fn.base import Call, Fn
-    from .fn.implement import FnImplementEntity
+    from .fn.implement import FnImplementEntity, OverloadRecorder
     from .fn.record import FnImplement, FnRecord
     from .typing import CR, OutP
 
@@ -85,7 +85,7 @@ class scoped_collect(CollectContext):
 
             @staticmethod
             def impl(
-                fn: Fn[Callable[Concatenate[CR, OutP], Any], Any], *args: OutP.args, **kwargs: OutP.kwargs
+                fn: Fn[Callable[Concatenate[OverloadRecorder[CR], OutP], Any], Any], *args: OutP.args, **kwargs: OutP.kwargs
             ) -> AssignKeeperCls[Call[..., CR]]:
                 def inner(impl: Callable[Concatenate[Any, P], R] | FnImplementEntity[Callable[P, R]]):
                     if not isinstance(impl, FnImplementEntity):

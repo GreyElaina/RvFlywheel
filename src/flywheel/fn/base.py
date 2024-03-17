@@ -6,7 +6,7 @@ from typing_extensions import Concatenate
 
 from ..entity import BaseEntity
 from ..globals import iter_layout
-from ..typing import CR, AssignKeeper, Call, InP, OutP, P, R
+from ..typing import CR, AssignKeeper, Call, OutP, P, R
 from .compose import FnCompose
 from .implement import FnImplementEntity, OverloadRecorder
 
@@ -17,7 +17,7 @@ K = TypeVar("K")
 
 CCall = TypeVar("CCall", bound=Callable, covariant=True)
 CCollect = TypeVar("CCollect", bound=Callable, covariant=True)
-
+C = TypeVar("C", bound=Callable)
 
 class ComposeShape(Protocol[CCollect, CCall]):
     @property
@@ -29,7 +29,7 @@ class ComposeShape(Protocol[CCollect, CCall]):
         ...
 
 
-FnDef = Type[ComposeShape[Callable[InP, None], Callable[Concatenate["FnRecord", OutP], R]]]
+FnDef = Type[ComposeShape[CCollect, Callable[Concatenate["FnRecord", OutP], R]]]
 
 
 class Fn(Generic[CCollect, CCall], BaseEntity):
@@ -39,7 +39,7 @@ class Fn(Generic[CCollect, CCall], BaseEntity):
         self.desc = compose(self)
 
     @classmethod
-    def declare(cls, desc: FnDef[InP, OutP, R]) -> Fn[Callable[InP, None], Callable[OutP, R]]:
+    def declare(cls, desc: FnDef[C, OutP, R]) -> Fn[C, Callable[OutP, R]]:
         return cls(desc)  # type: ignore
 
     @property

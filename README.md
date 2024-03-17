@@ -15,10 +15,7 @@ Flywheel 着重于围绕 `Fn` 建设，以提供强大的重载功能为目的�
 ```python
 from typing import Protocol
 
-from flywheel.fn.base import Fn
-from flywheel.fn.compose import FnCompose, OverloadRecorder
-from flywheel.fn.record import FnRecord
-from flywheel.overloads import SimpleOverload
+from flywheel import Fn, FnCompose, OverloadRecorder, FnRecord, SimpleOverload
 
 @Fn.declare
 class greet(FnCompose):
@@ -49,7 +46,7 @@ class greet(FnCompose):
 在这里，我们使用 `global_collect` 函数，将实现收集到全局上下文中。
 
 ```python
-from flywheel.globals import global_collect
+from flywheel import global_collect
 
 @global_collect
 @greet.impl(name="Teague")
@@ -184,7 +181,7 @@ with local_cx.lookup_scope():
 需要注意的是，`global_collect` 函数的行为并不会因为上下文的存在而改变，为此，你需要考虑使用 `local_collect` 来将实现收集到你的上下文中。
 
 ```python
-from flywheel.globals import local_collect
+from flywheel import local_collect
 
 @local_collect
 @greet.impl(name="Teague")
@@ -207,7 +204,7 @@ def greet_grey(name: str) -> str:
 如果你希望你的模块保持命名空间的整洁，采用 `scoped_collect` 或许是不错的主意。只是他还有其他更重要的应用，且听我娓娓道来。
 
 ```python
-from flywheel.scoped import scoped_collect
+from flywheel import scoped_collect
 
 class greet_implements(m := scoped_collect.globals().target, static=True):
     @m.collect
@@ -235,7 +232,7 @@ class greet_implements(m := scoped_collect.globals().target, static=True):
 这段代码使用 `scoped_collect.globals()` 方法连接到了全局上下文。如果你不想这样，需要换成 `scoped_collect.env()`。
 
 ```python
-from flywheel.scoped import scoped_collect
+from flywheel import scoped_collect
 
 class greet_implements(m := scoped_collect.env().target, static=True):
     ...
@@ -286,7 +283,7 @@ def greet_teague(self, name: str) -> str:
 此外，全局实例上下文也在 `flywheel.globals` 模块中，可供君自由取用。
 
 ```python
-from flywheel.context import InstanceContext
+from flywheel import InstanceContext
 
 instance_cx = InstanceContext()
 
@@ -322,7 +319,7 @@ with instance_cx.scope(), collect_cx.lookup_scope():
 我们提供了可以自动访问当前实例上下文的描述符 `InstanceOf`，通过这一措施，你可以方便的访问实例上下文中的内容。
 
 ```python
-from flywheel.instance_of import InstanceOf
+from flywheel import InstanceOf
 
 from aiohttp import ClientSession
 

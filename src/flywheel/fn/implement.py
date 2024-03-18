@@ -5,8 +5,8 @@ from typing import TYPE_CHECKING, Any, Callable, Generic
 
 from typing_extensions import Concatenate
 
+from ..context import CollectContext
 from ..entity import BaseEntity
-from ..scoped import scoped_collect
 from ..typing import CR, P
 from .record import FnRecord
 
@@ -49,7 +49,7 @@ class FnImplementEntity(Generic[CR], BaseEntity):
     def add_target(self, fn: Fn[Callable[Concatenate[Any, P], Any], Any], *args: P.args, **kwargs: P.kwargs):
         self.targets.append((fn, args, kwargs))
 
-    def collect(self, collector: scoped_collect):
+    def collect(self, collector: CollectContext):
         super().collect(collector)
 
         for fn, args, kwargs in self.targets:

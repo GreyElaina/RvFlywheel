@@ -32,14 +32,14 @@ class test(FnCompose):
 def test_impl_str(value: type[str]):
     return "11"
 
-reveal_type(test.impl)
+reveal_type(test)
 reveal_type(test.impl(type=str))
 global_collect(test.impl(type=str)(test_impl_str))
 
 
 @global_collect
 @test.impl(type=int)
-def test_impl_int(value: type[int]):
+def test_impl_int(value: type[str]):
     return 11
 #reveal_type(test)
 import timeit

@@ -38,7 +38,7 @@ from flywheel.scoped import scoped_collect
 @global_collect
 @greet.impl(name="Teague")
 @greet.impl(name="Grey")
-def greet_someone(name: str) -> str:
+def greet_someone(name: int) -> str:
     return "Stargaztor"
 
 

@@ -1,6 +1,6 @@
 [project]
-name = "flywheel"
-version = "0.1.0"
+name = "elaina-flywheel"
+version = "0.1.1"
 description = ""
 authors = [
     {name = "Elaina", email = "GreyElaina@outlook.com"},
@@ -8,7 +8,7 @@ authors = [
 dependencies = [
     "typing-extensions>=4.10.0",
 ]
-requires-python = ">=3.11"
+requires-python = ">=3.9"
 readme = "README.md"
 license = {text = "MIT"}
 
@@ -26,3 +26,6 @@ extend-select = ["I001"]
 dev = [
     "viztracer>=0.16.2",
 ]
+
+[tool.pyright]
+pythonVersion = "3.9"

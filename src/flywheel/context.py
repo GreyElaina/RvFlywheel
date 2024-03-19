@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+from collections import ChainMap
 from contextlib import contextmanager
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, MutableMapping
 
 from .typing import TEntity
 
@@ -40,7 +41,7 @@ class CollectContext:
 
 
 class InstanceContext:
-    instances: dict[type, Any]
+    instances: MutableMapping[type, Any]
 
     def __init__(self):
         self.instances = {}
@@ -49,13 +50,15 @@ class InstanceContext:
     def scope(self, *, inherit: bool = True):
         from .globals import INSTANCE_CONTEXT_VAR
 
-        original = self.instances
         if inherit:
-            self.instances = {**INSTANCE_CONTEXT_VAR.get().instances, **self.instances}
+            res = InstanceContext()
+            res.instances = ChainMap(self.instances, INSTANCE_CONTEXT_VAR.get().instances)
 
-        token = INSTANCE_CONTEXT_VAR.set(self)
-        try:
-            yield self
-        finally:
-            INSTANCE_CONTEXT_VAR.reset(token)
-            self.instances = original
+            with res.scope(inherit=False):
+                yield self
+        else:
+            token = INSTANCE_CONTEXT_VAR.set(self)
+            try:
+                yield self
+            finally:
+                INSTANCE_CONTEXT_VAR.reset(token)

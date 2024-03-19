@@ -28,10 +28,13 @@ class OverloadRecorder(Generic[CR]):
         self.done()
 
     def done(self):
+        entity_identity = []
+
         for name, rule, value in self.operators:
             rule.lay(self.target, value, self.implement, name=name)
+            entity_identity.append((name, rule, rule.digest(value)))
 
-        self.target.entities[frozenset(self.operators)] = self.implement
+        self.target.entities[frozenset(entity_identity)] = self.implement
 
     def use(self, target: FnOverload[Any, TCollectValue, Any], value: TCollectValue, *, name: str | None = None):
         self.operators.append((name or target.name, target, value))

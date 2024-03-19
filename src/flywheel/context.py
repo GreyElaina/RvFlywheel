@@ -59,7 +59,7 @@ class InstanceContext:
 
         if inherit:
             res = InstanceContext()
-            res.instances = ChainMap(self.instances, INSTANCE_CONTEXT_VAR.get().instances)
+            res.instances = ChainMap({}, self.instances, INSTANCE_CONTEXT_VAR.get().instances)
 
             with res.scope(inherit=False):
                 yield self

@@ -289,8 +289,11 @@ instance_cx = InstanceContext()
 
 instance_cx.instances[str] = "EMPTY"
 
-with instance_cx.scope():  # 会返回上下文实例，这里没有必要。
-    instance_cx.instances[int] = 42  # 在哪里设置不重要。
+with instance_cx.scope() as scope_cx:  # 会返回上下文实例，对这里返回的上下文实例进行修改**不会**影响上文。
+    instance_cx.instances[int] = 42  # 常规用法。
+
+    scope_cx.store({str: "42"}, 1.14, None)
+    # 相当于 `instance_cx.store({str: "42", float: 1.14, type(None): None｝)`
 
     ...  # do other stuffs
 ```

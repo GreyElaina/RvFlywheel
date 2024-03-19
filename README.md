@@ -357,5 +357,5 @@ GLOBAL_INSTANCE_CONTEXT.instances[...] = ...
 由于我们将 Fn 的入口点 (`Fn`) 与实际实现分开，我们可以借助这一点实现错误处理等应用的代数效应。
 
 ```python
-# TODO: Algotrium Effect on Flywheel
+# TODO: Algebraic Effect on Flywheel
 ```

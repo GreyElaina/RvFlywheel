@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Callable, Protocol, TypeVar
+from typing import TYPE_CHECKING, Any, Callable, Protocol, TypeVar, overload
 
 from typing_extensions import Concatenate, ParamSpec
 
@@ -18,6 +18,7 @@ OutP = ParamSpec("OutP")
 CR = TypeVar("CR", covariant=True, bound=Callable)
 CT = TypeVar("CT", bound=Callable)
 TEntity = TypeVar("TEntity", bound="BaseEntity")
+C = TypeVar("C", bound=Callable)
 
 
 class Collectable(Protocol[InP]):
@@ -31,9 +32,17 @@ class Call(Protocol[P, R]):
 
 
 class AssignKeeper(Protocol[R]):
+    @overload
     def __call__(
         self: AssignKeeper[Call[..., Callable[P1, R1]]],
-        implement: Callable[P1, R1] | FnImplementEntity[Callable[P1, R1]],
+        implement: FnImplementEntity[Callable[P1, R1]],
+    ) -> FnImplementEntity[Callable[P1, R1]]:
+        ...
+
+    @overload
+    def __call__(
+        self: AssignKeeper[Call[..., Callable[P1, R1]]],
+        implement: Callable[P1, R1],
     ) -> FnImplementEntity[Callable[P1, R1]]:
         ...
 

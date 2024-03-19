@@ -1,4 +1,7 @@
+from __future__ import annotations
+
 from typing import Protocol
+from typing_extensions import reveal_type
 
 from flywheel.fn.base import Fn
 from flywheel.fn.compose import FnCompose
@@ -38,9 +41,10 @@ from flywheel.scoped import scoped_collect
 @global_collect
 @greet.impl(name="Teague")
 @greet.impl(name="Grey")
-def greet_someone(name: int) -> str:
+def greet_someone(name: str | int) -> str:
     return "Stargaztor"
 
+reveal_type(greet_someone)
 
 with InstanceContext().scope() as ins:
     ins.instances[str] = "test"

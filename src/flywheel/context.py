@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from collections import ChainMap
 from contextlib import contextmanager
-from typing import TYPE_CHECKING, Any, MutableMapping
+from typing import TYPE_CHECKING, Any, Mapping, MutableMapping
 
 from .typing import TEntity
 
@@ -45,6 +45,13 @@ class InstanceContext:
 
     def __init__(self):
         self.instances = {}
+
+    def store(self, *collection_or_target: Mapping[type, Any] | Any):
+        for item in collection_or_target:
+            if isinstance(item, Mapping):
+                self.instances.update(item)
+            else:
+                self.instances[item.__class__] = item
 
     @contextmanager
     def scope(self, *, inherit: bool = True):

@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from contextlib import contextmanager
 import functools
 from collections import defaultdict
+from contextlib import contextmanager
 from contextvars import ContextVar, copy_context
 from typing import Any, Callable, Generator, Tuple
 

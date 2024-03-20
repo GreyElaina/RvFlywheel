@@ -80,7 +80,7 @@ NotImplementedError: cannot lookup any implementation with given arguments
 ```python
 @Fn.declare
 class greet(FnCompose):
-    name = SimpleOverload("name")
+    name = SimpleOverload("name")  # 指定 name 是必要的。
 
     def call(self, record: FnRecord, name: str) -> str:
         entities = self.load(self.name.dig(record, name))
@@ -154,6 +154,15 @@ class SimpleOverload(FnOverload[SimpleOverloadSignature, Any, Any]):
 你可以尝试借由这个例子来实现一个依据调用时值 (`call_value`) 的类型来找到对应的实现的 `TypeOverload`，作为参考答案，你可以在 `flywheel.overloads` 模块中找到同名的实现。
 
 对于 `FnOverload` 来说，他不一定要搜索尽可能多的实现 —— 这根据实际情况来决定：如果你希望你的 Fn 表现的像是个事件系统，这种情况下你最好找到尽可能多的实现 —— 不幸的，我们没有提供什么 `greed` 参数，因此你需要自己实现。
+
+```python
+class SomeMaybeGreedOverload(FnOverload):
+    def __init__(self, name: str, greed: bool):
+        self.name = name
+        self.greed = greed
+
+    ...  # 你的实际逻辑
+```
 
 ## 上下文
 

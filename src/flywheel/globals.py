@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from contextlib import contextmanager
 import functools
 from collections import defaultdict
 from contextvars import ContextVar, copy_context
@@ -55,3 +56,13 @@ def global_collect(entity: TEntity) -> TEntity:
 
 def local_collect(entity: TEntity) -> TEntity:
     return COLLECTING_CONTEXT_VAR.get().collect(entity)
+
+
+@contextmanager
+def union_scope(*contexts: CollectContext):
+    token = LOOKUP_LAYOUT_VAR.set((*contexts, *LOOKUP_LAYOUT_VAR.get()))
+
+    try:
+        yield
+    finally:
+        LOOKUP_LAYOUT_VAR.reset(token)

@@ -1,10 +1,15 @@
 # Ryanvk Flywheel
 
-Ryanvk Flywheel 是一个 Ryanvk-style 的 utility，其提供强大的 `Fn`、`FnOverload`，实现了在单一入口点上的几近*完美*的自由重载。  
-...而更为可贵的是，Flywheel 具有*前沿级*的类型支持。
+Ryanvk Flywheel 是一个 Ryanvk-style 的 utility。
 
-这个库是专门为 Avilla 轻量化定制的，你可以在[这里](https://github.com/GraiaProject/Avilla/tree/master/avilla/core/flywheel) 找到与本仓库相同的内容，相比标准版的 Ryanvk，其体量仅为其一半不到。  
-本仓库中的内容预计不会在 PyPI 上发布单独的 `flywheel` 包，请自行使用 VcsRequirement 方式导入你的项目。
+- 在单一入口点上的*几近完美*的自由重载；
+- 简单灵活的重载机制；
+- *前沿级*的类型支持[^1]；
+- 可切换上下文。
+
+Available on PyPI: `elaina-flywheel`。
+
+[^1]: 仅在 Pyright / Basedpyright 上可用。
 
 ## 使用
 
@@ -154,6 +159,8 @@ class SimpleOverload(FnOverload[SimpleOverloadSignature, Any, Any]):
 你可以尝试借由这个例子来实现一个依据调用时值 (`call_value`) 的类型来找到对应的实现的 `TypeOverload`，作为参考答案，你可以在 `flywheel.overloads` 模块中找到同名的实现。
 
 对于 `FnOverload` 来说，他不一定要搜索尽可能多的实现 —— 这根据实际情况来决定：如果你希望你的 Fn 表现的像是个事件系统，这种情况下你最好找到尽可能多的实现 —— 不幸的，我们没有提供什么 `greed` 参数，因此你需要自己实现。
+
+你可以添加构造器参数，并继承现有的其他重载实现。
 
 ```python
 class SomeMaybeGreedOverload(FnOverload):

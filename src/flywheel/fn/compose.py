@@ -1,12 +1,9 @@
 from __future__ import annotations
 
 from functools import reduce
-from typing import TYPE_CHECKING, Any, Callable, Final, Generic, TypeVar, overload
-
-from typing_extensions import Concatenate
+from typing import TYPE_CHECKING, Any, Callable, Final, TypeVar
 
 from ..overloads import SINGLETON_OVERLOAD
-from ..typing import CT, P1, Collectable, ImplementSample, P, R
 from .record import FnImplement, FnRecord
 
 if TYPE_CHECKING:
@@ -32,16 +29,6 @@ class FnCompose:
     def signature(self):
         return FnImplement(self.fn)
 
-    @overload
-    def load(self: ImplementSample[CT], *collections: dict[Callable, None]) -> HarvestWrapper[CT]:
-        ...
-
-    @overload
-    def load(
-        self: Collectable[Concatenate[OverloadRecorder[Callable[P, R]], P1]], *collections: dict[Callable, None]
-    ) -> HarvestWrapper[Callable[P, R]]:
-        ...
-
     def load(self, *collections: dict[Callable, None]):  # type: ignore
         if not collections:
             raise TypeError("at least one collection is required")
@@ -52,18 +39,17 @@ class FnCompose:
         if not col:
             return HarvestWrapper(init)
 
-        r = reduce(lambda x, y: {i: None for i in x if i in y}, col, init)
-        return HarvestWrapper(r)
+        return HarvestWrapper(reduce(lambda x, y: {i: None for i in x if i in y}, col, init))
 
 
-class HarvestWrapper(Generic[CT]):
-    harvest: dict[CT, None]
+class HarvestWrapper:
+    harvest: dict[Callable, None]
 
-    def __init__(self, harvest: dict[CT, None]):
+    def __init__(self, harvest: dict[Callable, None]):
         self.harvest = harvest
 
     @property
-    def first(self) -> CT:
+    def first(self) -> Callable:
         if not self.harvest:
             raise NotImplementedError("cannot lookup any implementation with given arguments")
 

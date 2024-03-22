@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from sys import path
-from typing import Callable, Protocol, TypeVar, reveal_type
+from typing import Callable, Protocol, TypeVar
 
 from flywheel.fn.base import Fn
 from flywheel.fn.compose import FnCompose

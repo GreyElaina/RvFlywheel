@@ -54,8 +54,3 @@ class AssignKeeperCls(Protocol[R]):
     ) -> FnImplementEntity[Callable[P1, R1]]:
         ...
 
-
-class ImplementSample(Protocol[CR]):
-    @property
-    def implement_sample(self) -> CR:
-        ...

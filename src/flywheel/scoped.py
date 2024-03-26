@@ -5,19 +5,16 @@ from typing import Any, Callable
 
 from .context import CollectContext
 from .globals import COLLECTING_CONTEXT_VAR, GLOBAL_COLLECT_CONTEXT, GLOBAL_INSTANCE_CONTEXT, INSTANCE_CONTEXT_VAR
-from .typing import TYPE_CHECKING, AssignKeeperCls, P, R, TEntity
+from .typing import CR, TYPE_CHECKING, AssignKeeperCls, OutP, P, R, TEntity
 
 if TYPE_CHECKING:
     from typing_extensions import Concatenate
 
     from .fn.base import Call, Fn
     from .fn.implement import FnImplementEntity, OverloadRecorder
-    from .fn.record import FnImplement, FnRecord
-    from .typing import CR, OutP
 
 
 class scoped_collect(CollectContext):
-    fn_implements: dict[FnImplement, FnRecord]
     _tocollect_list: dict[FnImplementEntity, None]
     finalize_cbs: list[Callable[[scoped_collect], Any]]
     cls: type | None = None

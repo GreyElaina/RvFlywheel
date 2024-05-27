@@ -5,10 +5,11 @@ from typing import TYPE_CHECKING, Any, Callable, Generator, Generic, Protocol, T
 
 from typing_extensions import Concatenate, ParamSpec
 
+from ..typing import RecordsT
 from .compose import FnCompose
 from .harvest import FnHarvestControl
 from .implement import FnImplementEntity
-from .record import FnOverloadSignal, FnRecord
+from .record import FnOverloadSignal
 
 T = TypeVar("T")
 T_contra = TypeVar("T_contra", contravariant=True)
@@ -22,8 +23,10 @@ P1 = ParamSpec("P1")
 R = TypeVar("R", covariant=True)
 P2 = ParamSpec("P2")
 
+CollectEndpointTarget = Generator[FnOverloadSignal, None, T]
 
-class EndpointCollectReceiver(Protocol[P, C]):
+
+class EndpointCollectReceiver(Protocol[C]):
     @overload
     def __call__(self, value: FnImplementEntity[C]) -> FnImplementEntity[C]: ...
     @overload
@@ -35,13 +38,13 @@ class FnCollectEndpoint(Generic[P, C_contra]):  # FIXME: should <: classmethod.
     @overload
     def __init__(
         self: FnCollectEndpoint[P1, Callable],
-        target: Callable[Concatenate[Any, P1], Generator[FnOverloadSignal, None, None]],
+        target: Callable[Concatenate[Any, P1], CollectEndpointTarget[T]],
     ): ...
 
     @overload
     def __init__(
         self: FnCollectEndpoint[P1, Callable[P2, R]],
-        target: Callable[Concatenate[Any, P1], Generator[FnOverloadSignal, None, Callable[P2, R] | Any]],
+        target: Callable[Concatenate[Any, P1], CollectEndpointTarget[Callable[P2, R] | Any]],
     ) -> None: ...
 
     def __init__(self, target):
@@ -58,20 +61,18 @@ class FnCollectEndpoint(Generic[P, C_contra]):  # FIXME: should <: classmethod.
         return self.compose.fn
 
     @overload
-    def __get__(self, instance: None, owner: type[K]) -> Callable[P, EndpointCollectReceiver[P, C_contra]]:
-        # 这段类型理论上会让 FnImplementEntity 上的类型被保留。
-        # 但我不确定 Unknown 并上去会不会被 Pyright 识别为 Any，从而 pass check。
+    def __get__(self, instance: None, owner: type[K]) -> Callable[P, EndpointCollectReceiver[C_contra]]:
         ...
 
     @overload
     def __get__(
         self, instance: FnCompose, owner: Any
-    ) -> Callable[[dict[FnCollectEndpoint, FnRecord]], FnHarvestControl[C_contra]]: ...
+    ) -> Callable[[RecordsT], FnHarvestControl[C_contra]]: ...
 
     def __get__(self, instance, owner) -> Any:
         if instance is None:
 
-            def wrapper(*args: P.args, **kwargs: P.kwargs):
+            def collect_wrapper(*args: P.args, **kwargs: P.kwargs):
                 def receive(entity: C | FnImplementEntity) -> FnImplementEntity[C]:
                     if not isinstance(entity, FnImplementEntity):
                         entity = FnImplementEntity(entity)
@@ -81,9 +82,9 @@ class FnCollectEndpoint(Generic[P, C_contra]):  # FIXME: should <: classmethod.
 
                 return receive
 
-            return wrapper
+            return collect_wrapper
 
-        def harvest_wrapper(records: dict[FnCollectEndpoint, FnRecord]):
+        def harvest_wrapper(records: RecordsT):
             return FnHarvestControl(self, instance, records)
 
         return harvest_wrapper

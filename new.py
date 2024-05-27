@@ -10,6 +10,8 @@ from flywheel.globals import global_collect
 from flywheel.overloads import SimpleOverload
 from typing_extensions import reveal_type
 
+from flywheel.typing import RecordsT
+
 T = TypeVar("T")
 
 
@@ -25,7 +27,7 @@ class test(FnCompose):
         def shape(type: type[T]) -> T: ...
         return shape
 
-    def call(self, records: dict[FnCollectEndpoint, FnRecord], type: type[T]) -> T:
+    def call(self, records: RecordsT, type: type[T]) -> T:
         a = self.normal(records).use(self.sim, type).first
         return a(type)
 

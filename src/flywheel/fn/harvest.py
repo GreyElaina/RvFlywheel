@@ -2,18 +2,18 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, Callable, Generic, TypeVar
 
+from ..typing import RecordsT
 from .overload import FnOverload, TCallValue
-from .record import FnRecord
 
 if TYPE_CHECKING:
-    from flywheel.fn.compose import FnCompose
-    from flywheel.fn.endpoint import FnCollectEndpoint
+    from .compose import FnCompose
+    from .endpoint import FnCollectEndpoint
 
 C = TypeVar("C", bound=Callable)
 
 
 class FnHarvestControl(Generic[C]):
-    def __init__(self, endpoint: FnCollectEndpoint, compose: FnCompose, records: dict[FnCollectEndpoint, FnRecord]) -> None:
+    def __init__(self, endpoint: FnCollectEndpoint, compose: FnCompose, records: RecordsT) -> None:
         self.endpoint = endpoint
         self.compose = compose
         self.records = records

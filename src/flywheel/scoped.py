@@ -10,8 +10,7 @@ from .typing import TYPE_CHECKING, P, R, TEntity
 if TYPE_CHECKING:
     from typing_extensions import Concatenate
 
-    from flywheel.fn.endpoint import FnCollectEndpoint
-
+    from .fn.endpoint import FnCollectEndpoint
     from .fn.implement import FnImplementEntity
     from .fn.record import FnImplement, FnRecord
 

@@ -4,9 +4,8 @@ from typing import TYPE_CHECKING, Any, Callable, Generic, Protocol, TypeVar
 
 from typing_extensions import Concatenate, ParamSpec
 
-from flywheel.globals import iter_layout
-from flywheel.typing import CR
-
+from ..globals import iter_layout
+from ..typing import CR
 from .record import FnImplement
 
 if TYPE_CHECKING:
@@ -17,7 +16,7 @@ P = ParamSpec("P")
 R = TypeVar("R", covariant=True)
 
 
-class _CallDef(Protocol[CR]):
+class ExtractCall(Protocol[CR]):
     @property
     def call(self) -> CR: ...
 
@@ -33,7 +32,7 @@ class Fn(Generic[FC]):
     def _(self):
         return type(self.compose)
 
-    def __call__(self: Fn[_CallDef[Callable[Concatenate[Any, P], R]]], *args: P.args, **kwargs: P.kwargs) -> R:  # type: ignore
+    def __call__(self: Fn[ExtractCall[Callable[Concatenate[Any, P], R]]], *args: P.args, **kwargs: P.kwargs) -> R:  # type: ignore
         sign = FnImplement(self)
 
         for layout in iter_layout(self):

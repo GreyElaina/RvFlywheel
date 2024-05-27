@@ -21,7 +21,7 @@ class FnHarvestControl(Generic[C]):
     @property
     def record(self):
         if self.endpoint not in self.records:
-            raise NotImplementedError
+            raise NotImplementedError(f"endpoint {self.endpoint} not found in records")
 
         return self.records[self.endpoint]
 
@@ -40,7 +40,7 @@ class FnHarvest(Generic[C]):
 
     def use(self, overload: FnOverload[Any, Any, TCallValue], value: TCallValue):
         if self.result is None:
-            raise NotImplementedError
+            raise NotImplementedError(f"result is None, cannot use overload {overload} with value {value}")
 
         self.result = dict(self.result.items() & overload.dig(self.control.record, value).items())
         return self
@@ -48,13 +48,13 @@ class FnHarvest(Generic[C]):
     @property
     def first(self) -> C:
         if self.result is None:
-            raise NotImplementedError
+            raise NotImplementedError("result is None, cannot get first item")
 
         return next(iter(self.result))  # type: ignore
 
     def __iter__(self) -> list[C]:
         if self.result is None:
-            raise NotImplementedError
+            raise NotImplementedError("result is None, cannot iterate")
 
         return list(self.result)  # type: ignore
 

@@ -42,4 +42,4 @@ class Fn(Generic[FC]):
 
             return self.compose.call(records, *args, **kwargs)
         else:
-            raise NotImplementedError
+            raise NotImplementedError("cannot lookup any implementation with given arguments")

@@ -347,6 +347,27 @@ with instance_cx.scope(), collect_cx.lookup_scope():
 
 从该示例中你也可以了解到 Flywheel 对异步的支持，理论上也能一并支持生成器，异步生成器甚至 `contextlib.contextmanager`，但如果出了问题，欢迎汇报至 issues.
 
+### 重写 static 实例化行为
+
+通过重写类方法 (classmethod) `build_static`，你可以自定义 `static` 参数的实例化行为。
+
+```python
+class sth_implements(m := scoped_collect.locals().target, static=True):
+    session = InstanceOf(ClientSession)
+
+    def __init__(self, session: ClientSession):
+        self.session = session
+
+    @m.impl(...)
+    async def something(self, num: int):
+        await self.session.get(f"http://example.com/", params={"num": num})
+
+    @classmethod
+    def build_static(cls):
+        return cls(GLOBAL_AIOHTTP_SESSION)
+```
+
+
 ### 全局上下文
 
 Flywheel 同样提供了全局的实例上下文。

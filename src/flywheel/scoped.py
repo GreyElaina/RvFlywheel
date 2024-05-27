@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import functools
 from typing import Any, Callable
+from typing_extensions import Self
 
 from .context import CollectContext
 from .globals import COLLECTING_CONTEXT_VAR, GLOBAL_COLLECT_CONTEXT, GLOBAL_INSTANCE_CONTEXT, INSTANCE_CONTEXT_VAR
@@ -60,12 +61,16 @@ class scoped_collect(CollectContext):
         class LocalEndpoint:
             collector = self
 
+            @classmethod
+            def build_static(cls) -> Self:
+                return cls()
+
             def __init_subclass__(cls, *, static: bool = False) -> None:
                 self.cls = cls
                 self.finalize()
 
                 if static:
-                    GLOBAL_INSTANCE_CONTEXT.instances[cls] = cls()
+                    GLOBAL_INSTANCE_CONTEXT.instances[cls] = cls.build_static()
 
             @staticmethod
             def collect(entity: TEntity) -> TEntity:  # type: ignore

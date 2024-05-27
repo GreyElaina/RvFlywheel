@@ -4,12 +4,14 @@ Ryanvk Flywheel 是一个 Ryanvk-style 的 utility。
 
 - 在单一入口点上的*几近完美*的自由重载；
 - 简单灵活的重载机制；
-- *前沿级*的类型支持[^1]；
+- *前沿级*的类型支持 [^1] [^2]；
 - 可切换上下文。
 
 Available on PyPI: `elaina-flywheel`。
 
 [^1]: 仅在 Pyright / Basedpyright 上可用。
+
+[^2]: 仍存在无法彻底解决的问题，比如 `FnImplementEntity` 上的类型会因 check-and-narrowing 行为被迫丢失。
 
 ## 使用
 

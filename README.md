@@ -1,23 +1,24 @@
 # Ryanvk Flywheel
 
-Ryanvk Flywheel 是一个 Ryanvk-style 的 utility。
+Ryanvk Flywheel is a utility designed in the Ryanvk style.
 
-- 在单一入口点上的*几近完美*的自由重载；
-- 简单灵活的重载机制；
-- *前沿级*的类型支持 [^1] [^2]；
-- 可切换上下文。
+[中文说明](./README.zh.md)
 
-Available on PyPI: `elaina-flywheel`。
+- Near-perfect free overload at a single entry point;
+- Simple and flexible overload mechanism;
+- Cutting-edge type support [^1] [^2];
+- Switchable contexts.
 
-[^1]: 仅在 Pyright / Basedpyright 上可用。
+Available on PyPI: `elaina-flywheel`.
 
-[^2]: 仍存在无法彻底解决的问题，比如 `FnImplementEntity` 上的类型会因 check-and-narrowing 行为被迫丢失。
+[^1]: Only available on Pyright / Basedpyright.
+[^2]: Some issues remain unresolved, such as unexpected type information loss in `FnImplementEntity` due to check-and-narrowing behavior.
 
-## 使用
+## Usage
 
-Flywheel 着重于围绕 `Fn` 建设，以提供强大的重载功能为目的。
+Flywheel focuses on constructing around `Fn` to provide powerful overloading functionality.
 
-可以通过这种方法创建一个使用*简单重载*(`SimpleOverload`)的 `Fn`。
+You can create an `Fn` with simple overloading (`SimpleOverload`) like this:
 
 ```python
 from typing import Protocol
@@ -29,8 +30,8 @@ class greet(FnCompose):
     name = SimpleOverload("name")
 
     def call(self, records, name: str) -> str:
-        # 我们不关心 records 的类型。
-        # 如果你在乎，它的类型是 dict[FnCollectEndpoint, FnImplementEntity]
+        # We don't care about the type of records.
+        # If you do, it is dict[FnCollectEndpoint, FnImplementEntity]
 
         entities = self.someone(records).use(self.name, name)
         return entities.first(name)
@@ -40,18 +41,17 @@ class greet(FnCompose):
     def someone(cls, *, name: str):
         yield cls.name.hold(name)
 
-        # 可选的，你可以给出实现的类型，运行时中我们不关心这个，所以你可以放在 if TYPE_CHECKING 中。
+        # Optionally, you can provide the implementation type; we don't care about it at runtime, so you can place it in if TYPE_CHECKING.
         def shape(name: str) -> str: ...
         return shape
 ```
 
-然后我们为 `greet` 提出两个实现：
+Then, we propose two implementations for `greet`:
 
-- 当 `name` 是 `Teague` 的时候返回 `"Stargaztor, but in name only."`；
-- 当 `name` 是 `Grey` 的时候返回 `"Symbol, the Founder."`：
+- Return `"Stargaztor, but in name only."` when `name` is `Teague`;
+- Return `"Symbol, the Founder."` when `name` is `Grey`.
 
-当提出实现后，我们还得将其收集起来，这样 Flywheel 的内部系统才能调用的到这些实现。
-在这里，我们使用 `global_collect` 函数，将实现收集到全局上下文中。
+After proposing implementations, we need to collect them so that Flywheel's internal system can see, and call these implementations. Here, we use the `global_collect` function to collect implementations into the global context.
 
 ```python
 from flywheel import global_collect
@@ -67,7 +67,7 @@ def greet_grey(name: str) -> str:
     return "Symbol, the Founder."
 ```
 
-然后我们调用。
+Then we call.
 
 ```python
 >>> greet("Teague")
@@ -76,55 +76,54 @@ def greet_grey(name: str) -> str:
 'Symbol, the Founder.'
 ```
 
-看上去很不错，按照预期的调度到了相应的实现上；如果我们输入一个*未实现*的字段会怎么样呢？
+It looks good, dispatching to the appropriate implementation as expected. What happens if we input an unimplemented field?
 
 ```python
 >>> greet("Hizuki")
 NotImplementedError: cannot lookup any implementation with given arguments
 ```
 
-显然，我们并没有面向 `"Hizuki"` 实现一个 `greet`。为了使我们的程序能处理这种情况，我们可以这样修改 `greet` 的声明：
+Clearly, we haven't implemented a `greet` for `"Hizuki"`. To handle such situations, we can modify the declaration of `greet`:
 
 ```python
 @Fn.declare
 class greet(FnCompose):
-    name = SimpleOverload("name")  # 指定 name 是必要的。
+    name = SimpleOverload("name")  # Specify that name is required.
 
     def call(self, records, name: str) -> str:
-        # 我们不关心 records 的类型。
-        # 如果你在乎，它的类型是 dict[FnCollectEndpoint, FnImplementEntity]
+        # We don't care about the type of records.
+        # If you do, it is dict[FnCollectEndpoint, FnImplementEntity]
 
         entities = self.someone(records).use(self.name, name)
 
-        if not entities:  # 判断是否存在符合条件的实现
+        if not entities:  # Check if there are any matching implementations
             return f"Ordinary, {name}."
 
         return entities.first(name)
 ```
 
-这种方法可以提供一种极其灵活的默认实现机制：于是现在我们可以调用 `greet` 了。
+This method provides an extremely flexible default implementation mechanism: now we can call `greet`.
 
 ```python
 >>> greet("Hizuki")
 'Ordinary, Hizuki.'
 ```
 
-## 重载机制
+## Overloading Mechanism
 
-Flywheel 的重载机制是基于 `FnOverload` 的实现，其包含了以下 4 个主要功能：
+Flywheel's overloading mechanism is implemented based on `FnOverload`, which includes the following four main functions:
 
-- `digest`: 将收集实现时提供的参数 (`Fn.impl` 方法) 转换为可保存的签名对象；
-- `collect`: 利用签名所蕴含的参数，在自己的命名空间中配置用于存放实现引用的集合；
-- `harvest`: 根据传入的值，在命名空间中匹配相应的集合；
-- `access`: 根据传入的签名，从命名空间中匹配相应的集合。
+- `digest`: Converts parameters provided during implementation collection (`Fn.impl` method) into storable signature objects;
+- `collect`: Configures collections in its namespace for storing implementation references using the parameters in the signature;
+- `harvest`: Matches collections in its namespace based on the provided values;
+- `access`: Matches collections in its namespace based on the provided signature.
 
-这里使用集合来在命名空间中保存实现的引用，是将一项 Overload 当成标记在引用上的*标签*使用，这样我们就能对不同的参数使用灵活的重载配置，并最终通过交集来找到对应的实现。
-甚至，我们也可以籍由构造具有复杂逻辑的 `if / load` 链，实现一些难以想象的逻辑。
+Here, collections are used to store references to implementations in the namespace, treating an Overload as a tag on references. This allows flexible overload configurations using different parameters and ultimately finding the corresponding implementation through intersections. Additionally, you can implement complex logic by constructing an `if/load` chain with complex logic.
 
 > [!NOTE]  
-> Flywheel 使用 `dict[Callable, None]` 充当有序集合的内部实现。
+> Flywheel uses `dict[Callable, None]` as the internal implementation of an ordered set.
 
-以 `SimpleOverload` 为例：
+For example, `SimpleOverload`:
 
 ```python
 @dataclass(eq=True, frozen=True)
@@ -134,13 +133,12 @@ class SimpleOverloadSignature:
 
 class SimpleOverload(FnOverload[SimpleOverloadSignature, Any, Any]):
     def digest(self, collect_value: Any) -> SimpleOverloadSignature:
-        # 将收集实现时提供的参数转换为可保存的签名对象
+        # Converts parameters provided during implementation collection into storable signature objects
         return SimpleOverloadSignature(collect_value)
 
     def collect(self, scope: dict, signature: SimpleOverloadSignature) -> dict[Callable, None]:
         if signature.value not in scope:
-            # 在命名空间中配置用于存放实现引用的集合，如果没有就开辟，否则复用。
-            # 这里会用 dict[Callable, None]，原因是我们需要有序 +　唯一。
+            # Configures collections in its namespace for storing implementation references. If it doesn't exist, open a new one; otherwise, reuse.
             target = scope[signature.value] = {}  
         else:
             target = scope[signature.value]
@@ -148,8 +146,8 @@ class SimpleOverload(FnOverload[SimpleOverloadSignature, Any, Any]):
         return target
 
     def harvest(self, scope: dict, call_value: Any) -> dict[Callable, None]:
-        # 对于 Flywheel，"匹配" 是更准确的说法。
-        # 这允许我们对调用值实现泛匹配。
+        # For Flywheel, "matching" is a more accurate term.
+        # This allows generic matching for call values.
 
         if call_value in scope:
             return scope[call_value]
@@ -157,18 +155,18 @@ class SimpleOverload(FnOverload[SimpleOverloadSignature, Any, Any]):
         return {}
 
     def access(self, scope: dict, signature: SimpleOverloadSignature) -> dict[Callable, None] | None:
-        # 根据传入的签名，从命名空间中匹配相应的集合。
-        # 从 Ryanvk 原实现继承来的，Flywheel 里似乎不要求必须实现。
+        # Matches collections in its namespace based on the provided signature.
+        # Inherited from the original Ryanvk implementation; it seems Flywheel doesn't require this to be implemented.
 
         if signature.value in scope:
             return scope[signature.value]
 ```
 
-你可以尝试借由这个例子来实现一个依据调用时值 (`call_value`) 的类型来找到对应的实现的 `TypeOverload`，作为参考答案，你可以在 `flywheel.overloads` 模块中找到同名的实现。
+You can try implementing a `TypeOverload` that finds the corresponding implementation based on the type of the call value (`call_value`). As a reference, you can find the implementation in the `flywheel.overloads` module.
 
-对于 `FnOverload` 来说，他不一定要搜索尽可能多的实现 —— 这根据实际情况来决定：如果你希望你的 Fn 表现的像是个事件系统，这种情况下你最好找到尽可能多的实现 —— 不幸的，我们没有提供什么 `greed` 参数，因此你需要自己实现。
+For `FnOverload`, it doesn't necessarily need to search for as many implementations as possible — this depends on the actual situation: if you want your `Fn` to act like an event system, in which case you'd better find as many implementations as possible — unfortunately, we don't provide any `greed` parameter, so you need to implement it yourself.
 
-你可以添加构造器参数，并继承现有的其他重载实现。
+You can add constructor parameters and inherit other existing overload implementations.
 
 ```python
 class SomeMaybeGreedOverload(FnOverload):
@@ -176,14 +174,14 @@ class SomeMaybeGreedOverload(FnOverload):
         self.name = name
         self.greed = greed
 
-    ...  # 你的实际逻辑
+    ...  # Your actual logic
 ```
 
-## 上下文
+## Context
 
-Flywheel 提供了一个 `global_collect` 函数，用于将实现收集到全局上下文中。自然，上下文不会只有一个，Flywheel 允许你创建自己的上下文，并在你期望的时候应用。
+Flywheel provides a `global_collect` function to collect implementations into the global context. Naturally, there won't be just one context; Flywheel allows you to create your own contexts and apply them as you see fit.
 
-相应的，全局上下文存储在 `flywheel.globals.GLOBAL_COLLECT_CONTEXT`，如果你知道你在做什么有所必要的事情，这一信息可能对你有用。但我想大多数情况下你都不会使用到这一技巧。
+Correspondingly, the global context is stored in `flywheel.globals.GLOBAL_COLLECT_CONTEXT`. If you know what you're doing and need to do something necessary, this information might be useful to you. But I think most of the time you won't need this trick.
 
 ```python
 from flywheel.context import CollectContext
@@ -191,18 +189,18 @@ from flywheel.context import CollectContext
 local_cx = CollectContext()
 
 with local_cx.collect_scope():
-    # do some collect stuff;;
-    # 现在收集一些东西...
+    # do some collect stuff;
+    # Now collecting some things...
     ...
 
-# 你刚才收集到的东西现在并不能使用...
+# What you just collected can't be used now...
 
 with local_cx.lookup_scope():
-    # ...现在没问题啦！
+    # ...Now it's okay!
     ...
 ```
 
-需要注意的是，`global_collect` 函数的行为并不会因为上下文的存在而改变，为此，你需要考虑使用 `local_collect` 来将实现收集到你的上下文中。
+Note that the behavior of the `global_collect` function does not change due to the presence of contexts. Therefore, you need to consider using `local_collect` to collect implementations into your context.
 
 ```python
 from flywheel import local_collect
@@ -218,14 +216,13 @@ def greet_grey(name: str) -> str:
     return "Symbol, the Founder."
 ```
 
-如果你在这之前并没有使用过 `collect_scope`，`local_collect` 会采用默认行为，将实现收集到全局上下文中。
+If you haven't used `collect_scope` before, `local_collect` will adopt the default behavior of collecting implementations into the global context.
 
-但我们不建议在所有情况下都使用 `local_collect`，而是尽可能的使用 `global_collect`，
-除非你确定你的实现会因为你应用中蕴含的某种上下文而有必要发生改变（比如 Avilla 需要根据上下文中采用的协议实现切换）。
+But we do not recommend using `local_collect` in all situations; instead, use `global_collect` as much as possible, unless you are certain that your implementation needs to change due to some context in your application (e.g., Avilla needs to switch implementations based on the protocol used in the context).
 
 ## scoped_collect
 
-如果你希望你的模块保持命名空间的整洁，采用 `scoped_collect` 或许是不错的主意。只是他还有其他更重要的应用，且听我娓娓道来。
+If you want to keep your module's namespace clean, using `scoped_collect` might be a good idea. However, it has other more important applications, as I'll explain.
 
 ```python
 from flywheel import scoped_collect
@@ -237,10 +234,10 @@ class greet_implements(m := scoped_collect.globals().target, static=True):
     def greet_teague(self, name: str) -> str:
         return "Stargaztor, but in name only."
 
-    # 上面的写法未免过于冗长，我们正在考虑更好的办法。
+    # The above method is too verbose; we are considering better ways.
 ```
 
-这段代码使用 `scoped_collect` 实现了和我们最初给出的两个 `greet_xxx` 一样的效果。
+This code achieves the same effect as our initial two `greet_xxx`.
 
 ```python
 >>> greet("Teague")
@@ -249,7 +246,9 @@ class greet_implements(m := scoped_collect.globals().target, static=True):
 'Symbol, the Founder.'
 ```
 
-这段代码使用 `scoped_collect.globals()` 方法连接到了全局上下文。如果你不想这样，需要换成 `scoped_collect.locals()`。
+This code uses the `scoped_collect.globals()` method to connect to the global context
+
+. If you don't want this, replace it with `scoped_collect.locals()`.
 
 ```python
 from flywheel import scoped_collect
@@ -258,12 +257,12 @@ class greet_implements(m := scoped_collect.locals().target, static=True):
     ...
 ```
 
-`static=True` 时，`greet_implements` 会被实例化并保存到全局中的*实例上下文* (Instance Context) 中。  
-如果你自定义了你的构造方法 (即 `__init__` 或 `__new__`)，则会在启动时报错，此时你需要自己实现对 `InstanceContext` 的生成与应用。
+When `static=True`, `greet_implements` will be instantiated and stored in the global *instance context*.  
+If you have customized your constructor (i.e., `__init__` or `__new__`), an error will occur at startup. In this case, you need to implement the generation and application of the `InstanceContext` yourself.
 
-## 叠加
+## Stacking
 
-Flywheel 允许你这么做...：
+Flywheel allows you to do this...:
 
 ```python
 @global_collect
@@ -273,23 +272,23 @@ def greet_stargaztor(name: str) -> str:
     return f"Stargaztor"
 ```
 
-他等同于分别调用 `FnCollectEntity`，但写的更简短，同时你依旧能获得 Flywheel 前沿级的类型支持。
+It is equivalent to calling `FnCollectEntity` separately but written more concisely while still obtaining Flywheel's cutting-edge type support.
 
-如果需配合 `scoped_collect` 使用，注意将 `Fn.impl` 调用*夹*在 `m.collect` 与 `m.ensure_self` 中间：
+If you need to use it with `scoped_collect`, be sure to sandwich the `Fn.impl` call between `m.collect` and `m.ensure_self`:
 
 ```python
 @m.collect
-@greet.impl(name="Teague")
-@greet.impl(name="Grey")
+@greet._.impl(name="Teague")
+@greet._.impl(name="Grey")
 @m.ensure_self
 def greet_teague(self, name: str) -> str:
     return f"Stargaztor."
 ```
 
-## 实例上下文
+## Instance Context
 
-实例上下文 (`InstanceContext`) 是 Flywheel 访问局部命名空间中实例的桥梁，此外，你也可以透过这一特性，向 `scoped_collect` 中隐式传递参数，实现依赖注入。  
-此外，全局实例上下文也在 `flywheel.globals` 模块中，可供君自由取用。
+The instance context (`InstanceContext`) is a bridge for Flywheel to access instances in the local namespace. Moreover, you can use this feature to implicitly pass parameters to `scoped_collect`, achieving dependency injection.  
+Additionally, the global instance context is also available in the `flywheel.globals` module for your free use.
 
 ```python
 from flywheel import InstanceContext
@@ -298,20 +297,20 @@ instance_cx = InstanceContext()
 
 instance_cx.instances[str] = "EMPTY"
 
-with instance_cx.scope() as scope_cx:  # 会返回上下文实例，对这里返回的上下文实例进行修改**不会**影响上文。
-    instance_cx.instances[int] = 42  # 常规用法。
+with instance_cx.scope() as scope_cx:  # Returns the context instance; modifying the context instance returned here **will not** affect the above.
+    instance_cx.instances[int] = 42  # Normal usage.
 
     scope_cx.store({str: "42"}, 1.14, None)
-    # 相当于 `instance_cx.store({str: "42", float: 1.14, type(None): None｝)`
+    # Equivalent to `instance_cx.store({str: "42", float: 1.14, type(None): None})`
 
-    ...  # do other stuffs
+    ...  # do other stuff
 ```
 
-由于轻量化目的，目前我们尚未完成 Flywheel 中对于不同集合中实现记录的合并，所以这一方法目前只用于：
+For lightweight purposes, we have not yet completed the merging of implementation records in different collections in Flywheel. Therefore, this method is currently only used for:
 
-### 手动提供实例
+### Manually Providing Instances
 
-对于 `static=False` 的 `scoped_collect`，需要这样做以使其正常工作。
+For `scoped_collect` with `static=False`, you need to do this to make it work properly.
 
 ```python
 instance_cx = ...
@@ -326,9 +325,9 @@ with instance_cx.scope(), collect_cx.lookup_scope():
     # then normally Fn
 ```
 
-### 向内提供信息
+### Providing Information Internally
 
-我们提供了可以自动访问当前实例上下文的描述符 `InstanceOf`，通过这一措施，你可以方便的访问实例上下文中的内容。
+We provide a descriptor `InstanceOf` that can automatically access the current instance context, making it convenient to access content in the instance context.
 
 ```python
 from flywheel import InstanceOf
@@ -350,11 +349,11 @@ with instance_cx.scope(), collect_cx.lookup_scope():
     await fn(10)
 ```
 
-从该示例中你也可以了解到 Flywheel 对异步的支持，理论上也能一并支持生成器，异步生成器甚至 `contextlib.contextmanager`，但如果出了问题，欢迎汇报至 issues.
+From this example, you can also see Flywheel's support for asynchronous operations. Theoretically, it can also support generators, asynchronous generators, and even `contextlib.contextmanager`. If you encounter any issues, feel free to report them to the issues.
 
-### 重写 static 实例化行为
+### Overriding Static Instantiation Behavior
 
-通过重写类方法 (classmethod) `build_static`，你可以自定义 `static` 参数的实例化行为。
+By overriding the class method (classmethod) `build_static`, you can customize the instantiation behavior of the `static` parameter.
 
 ```python
 class sth_implements(m := scoped_collect.locals().target, static=True):
@@ -372,10 +371,9 @@ class sth_implements(m := scoped_collect.locals().target, static=True):
         return cls(GLOBAL_AIOHTTP_SESSION)
 ```
 
+### Global Context
 
-### 全局上下文
-
-Flywheel 同样提供了全局的实例上下文。
+Flywheel also provides a global instance context.
 
 ```python
 from flywheel.globals import GLOBAL_INSTANCE_CONTEXT
@@ -383,12 +381,4 @@ from flywheel.globals import GLOBAL_INSTANCE_CONTEXT
 GLOBAL_INSTANCE_CONTEXT.instances[...] = ...
 ```
 
-事实上，标记为 `static` 的 `scoped_collect`，其自动实例化结果就存储在这里，`static` 参数仅影响这一行为，也就是说 —— 你完全可以自己根据你自己的应用情况，将 `scoped_collect` 的实例化结果保存到这里提到的全局上下文中。
-
-## 代数效应 - 示例
-
-由于我们将 Fn 的入口点 (`Fn`) 与实际实现分开，我们可以借助这一点实现错误处理等应用的代数效应。
-
-```python
-# TODO: Algebraic Effect on Flywheel
-```
+In fact, the automatically instantiated result of `scoped_collect` marked as `static` is stored in this global instance context. The `static` parameter only affects this behavior. This means you can freely save the instantiation result of `scoped_collect` into this global context based on your application's situation.

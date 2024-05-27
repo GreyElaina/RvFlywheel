@@ -14,7 +14,6 @@ P = ParamSpec("P")
 CR = TypeVar("CR", covariant=True, bound=Callable)
 TEntity = TypeVar("TEntity", bound="BaseEntity")
 
-
 RecordsT = dict["FnCollectEndpoint", "FnRecord"]
 
 class Collectable(Protocol[P]):

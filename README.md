@@ -244,12 +244,12 @@ class greet_implements(m := scoped_collect.globals().target, static=True):
 'Symbol, the Founder.'
 ```
 
-这段代码使用 `scoped_collect.globals()` 方法连接到了全局上下文。如果你不想这样，需要换成 `scoped_collect.env()`。
+这段代码使用 `scoped_collect.globals()` 方法连接到了全局上下文。如果你不想这样，需要换成 `scoped_collect.locals()`。
 
 ```python
 from flywheel import scoped_collect
 
-class greet_implements(m := scoped_collect.env().target, static=True):
+class greet_implements(m := scoped_collect.locals().target, static=True):
     ...
 ```
 
@@ -330,7 +330,7 @@ from flywheel import InstanceOf
 
 from aiohttp import ClientSession
 
-class sth_implements(m := scoped_collect.env().target, static=True):
+class sth_implements(m := scoped_collect.locals().target, static=True):
     session = InstanceOf(ClientSession)
 
     @m.impl(...)

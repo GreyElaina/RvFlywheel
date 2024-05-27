@@ -33,7 +33,7 @@ class scoped_collect(CollectContext):
         return instance
 
     @classmethod
-    def env(cls):
+    def locals(cls):
         instance = cls()
         instance.fn_implements = COLLECTING_CONTEXT_VAR.get().fn_implements
         return instance

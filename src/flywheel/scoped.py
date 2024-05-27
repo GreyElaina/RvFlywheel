@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import functools
 from typing import Any, Callable
+
 from typing_extensions import Self
 
 from .context import CollectContext

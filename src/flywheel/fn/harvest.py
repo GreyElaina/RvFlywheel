@@ -1,0 +1,62 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Any, Callable, Generic, TypeVar
+
+from .overload import FnOverload, TCallValue
+from .record import FnRecord
+
+if TYPE_CHECKING:
+    from flywheel.fn.compose import FnCompose
+    from flywheel.fn.endpoint import FnCollectEndpoint
+
+C = TypeVar("C", bound=Callable)
+
+
+class FnHarvestControl(Generic[C]):
+    def __init__(self, endpoint: FnCollectEndpoint, compose: FnCompose, records: dict[FnCollectEndpoint, FnRecord]) -> None:
+        self.endpoint = endpoint
+        self.compose = compose
+        self.records = records
+
+    @property
+    def record(self):
+        if self.endpoint not in self.records:
+            raise NotImplementedError
+
+        return self.records[self.endpoint]
+
+    def use(self, overload: FnOverload[Any, Any, TCallValue], value: TCallValue):
+        return FnHarvest(self).apply(overload, value)
+
+
+class FnHarvest(Generic[C]):
+    def __init__(self, control: FnHarvestControl[C]) -> None:
+        self.control = control
+        self.result = None
+
+    def apply(self, overload: FnOverload[Any, Any, TCallValue], value: TCallValue):
+        self.result = overload.dig(self.control.record, value)
+        return self
+
+    def use(self, overload: FnOverload[Any, Any, TCallValue], value: TCallValue):
+        if self.result is None:
+            raise NotImplementedError
+
+        self.result = dict(self.result.items() & overload.dig(self.control.record, value).items())
+        return self
+
+    @property
+    def first(self) -> C:
+        if self.result is None:
+            raise NotImplementedError
+
+        return next(iter(self.result))  # type: ignore
+
+    def __iter__(self) -> list[C]:
+        if self.result is None:
+            raise NotImplementedError
+
+        return list(self.result)  # type: ignore
+
+    def __bool__(self):
+        return bool(self.result)

@@ -63,8 +63,7 @@ class TypeOverload(FnOverload[TypeOverloadSignature, Type[Any], Any]):
             return scope[signature.type]
 
 
-class _SingletonOverloadSignature:
-    ...
+class _SingletonOverloadSignature: ...
 
 
 SINGLETON_SIGN = _SingletonOverloadSignature()

@@ -25,8 +25,7 @@ class BaseEntity:
 
         return self
 
-    def assign_callback(self, info: EntityAssignInfo):
-        ...
+    def assign_callback(self, info: EntityAssignInfo): ...
 
     @final
     def _fallback_collected_callback(self, collector):

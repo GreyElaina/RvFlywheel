@@ -20,26 +20,27 @@ Flywheel 着重于围绕 `Fn` 建设，以提供强大的重载功能为目的�
 ```python
 from typing import Protocol
 
-from flywheel import Fn, FnCompose, OverloadRecorder, FnRecord, SimpleOverload
+from flywheel import Fn, FnCompose, FnRecord, SimpleOverload, FnCollectEndpoint
 
-@Fn.declare
+@Fn
 class greet(FnCompose):
     name = SimpleOverload("name")
 
-    def call(self, record: FnRecord, name: str) -> str:
-        entities = self.load(self.name.dig(record, name))
-        # entities 会自动读取到 collect 中对于 implement 参数的类型。
+    def call(self, records, name: str) -> str:
+        # 我们不关心 records 的类型。
+        # 如果你在乎，它的类型是 dict[FnCollectEndpoint, FnImplementEntity]
 
+        entities = self.someone(records).use(self.name, name)
         return entities.first(name)
-    
-    # 定义 Fn 面向的具体实现的类型...
-    class ShapeCall(Protocol):
-        def __call__(self, name: str) -> str:
-            ...
 
-    # ...并在 collect 方法中引用，这是可选的，仅影响 load 方法的返回类型。
-    def collect(self, recorder: OverloadRecorder[ShapeCall], *, name: str):
-        recorder.use(self.name, name)
+    @FnCollectEndpoint
+    @classmethod
+    def someone(cls, *, name: str):
+        yield cls.name.hold(name)
+
+        # 可选的，你可以给出实现的类型，运行时中我们不关心这个，所以你可以放在 if TYPE_CHECKING 中。
+        def shape(name: str) -> str: ...
+        return shape
 ```
 
 然后我们为 `greet` 提出两个实现：
@@ -54,12 +55,12 @@ class greet(FnCompose):
 from flywheel import global_collect
 
 @global_collect
-@greet.impl(name="Teague")
+@greet._.someone(name="Teague")
 def greet_teague(name: str) -> str:
     return "Stargaztor, but in name only."
 
 @global_collect
-@greet.impl(name="Grey")
+@greet._.someone(name="Grey")
 def greet_grey(name: str) -> str:
     return "Symbol, the Founder."
 ```
@@ -87,9 +88,11 @@ NotImplementedError: cannot lookup any implementation with given arguments
 class greet(FnCompose):
     name = SimpleOverload("name")  # 指定 name 是必要的。
 
-    def call(self, record: FnRecord, name: str) -> str:
-        entities = self.load(self.name.dig(record, name))
-        # entities 会自动读取到 collect 中对于 implement 参数的类型。
+    def call(self, records, name: str) -> str:
+        # 我们不关心 records 的类型。
+        # 如果你在乎，它的类型是 dict[FnCollectEndpoint, FnImplementEntity]
+
+        entities = self.someone(records).use(self.name, name)
 
         if not entities:  # 判断是否存在符合条件的实现
             return f"Ordinary, {name}."
@@ -200,12 +203,12 @@ with local_cx.lookup_scope():
 from flywheel import local_collect
 
 @local_collect
-@greet.impl(name="Teague")
+@greet._.someone(name="Teague")
 def greet_teague(name: str) -> str:
     return "Stargaztor, but in name only."
 
 @local_collect
-@greet.impl(name="Grey")
+@greet._.someone(name="Grey")
 def greet_grey(name: str) -> str:
     return "Symbol, the Founder."
 ```
@@ -224,16 +227,12 @@ from flywheel import scoped_collect
 
 class greet_implements(m := scoped_collect.globals().target, static=True):
     @m.collect
-    @greet.impl(name="Teague")
+    @greet._.someone(name="Teague")
     @m.ensure_self
     def greet_teague(self, name: str) -> str:
         return "Stargaztor, but in name only."
 
-    # 上面的写法未免过于冗长，可以考虑使用这种写法，基本等效。
-
-    @m.impl(greet, name="Grey")
-    def greet_grey(self, name: str) -> str:
-        return "Symbol, the Founder."
+    # 上面的写法未免过于冗长，我们正在考虑更好的办法。
 ```
 
 这段代码使用 `scoped_collect` 实现了和我们最初给出的两个 `greet_xxx` 一样的效果。
@@ -263,26 +262,15 @@ Flywheel 允许你这么做...：
 
 ```python
 @global_collect
-@greet.impl(name="Teague")
-@greet.impl(name="Grey")
+@greet._.someone(name="Teague")
+@greet._.someone(name="Grey")
 def greet_stargaztor(name: str) -> str:
     return f"Stargaztor"
 ```
 
-他等同于分别调用 `Fn.impl` 方法，但写的更简短，同时你依旧能获得 Flywheel 前沿级的类型支持。
+他等同于分别调用 `FnCollectEntity`，但写的更简短，同时你依旧能获得 Flywheel 前沿级的类型支持。
 
-当你配合 `scoped_collect` 使用时，可以直接使用 `m.impl` 方法，其将自动处理 `m.collect` 与 `m.ensure_self`。
-
-```python
-# 不需要手动调用 `m.collect` 与 `m.ensure_self`。
-
-@m.impl(greet, name="Teague")
-@m.impl(greet, name="Grey")
-def greet_stargaztor(self, name: str) -> str:
-    return "Stargaztor"
-```
-
-如果执意想要使用原始的方式，请注意将 `Fn.impl` 调用*夹*在 `m.collect` 与 `m.ensure_self` 中间：
+如果需配合 `scoped_collect` 使用，注意将 `Fn.impl` 调用*夹*在 `m.collect` 与 `m.ensure_self` 中间：
 
 ```python
 @m.collect

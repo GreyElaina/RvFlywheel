@@ -1,11 +1,10 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Callable, Generic, TypeVar
+from typing import Callable, Generic, TypeVar
 
 from typing_extensions import final
 
-if TYPE_CHECKING:
-    from .record import FnRecord
+from .record import FnOverloadSignal, FnRecord
 
 TOverload = TypeVar("TOverload", bound="FnOverload", covariant=True)
 TCallValue = TypeVar("TCallValue")
@@ -16,6 +15,10 @@ TSignature = TypeVar("TSignature")
 class FnOverload(Generic[TSignature, TCollectValue, TCallValue]):
     def __init__(self, name: str) -> None:
         self.name = name
+
+    @final
+    def hold(self, value: TCollectValue):
+        return FnOverloadSignal(self, value)
 
     @final
     def dig(self, record: FnRecord, call_value: TCallValue, *, name: str | None = None) -> dict[Callable, None]:

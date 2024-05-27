@@ -1,48 +1,42 @@
 from __future__ import annotations
 
-from typing import Protocol
-from typing_extensions import reveal_type
-
+from flywheel.context import InstanceContext
 from flywheel.fn.base import Fn
 from flywheel.fn.compose import FnCompose
-from flywheel.fn.implement import OverloadRecorder
-from flywheel.fn.record import FnRecord
+from flywheel.fn.endpoint import FnCollectEndpoint
+from flywheel.globals import global_collect
 from flywheel.overloads import SimpleOverload
+from typing_extensions import reveal_type
 
 
-@Fn.declare
+@Fn
 class greet(FnCompose):
     name = SimpleOverload("name")
 
-    def call(self, record: FnRecord, name: str) -> str:
-        entities = self.load(self.name.dig(record, name))
-        # entities 会自动读取到 collect 中对于 implement 参数的类型并返回。
+    def call(self, records, name: str) -> str:
+        entities = self.collect(records).use(self.name, name)
 
         if not entities:
             return f"Ordinary, {name}."
 
         return entities.first(name)
 
-    # 定义 Fn 实现的类型并在 collect 方法中引用。
-    class ShapeCall(Protocol):
-        def __call__(self, name: str) -> str:
-            ...
+    @FnCollectEndpoint
+    @classmethod
+    def collect(cls, *, name: str):
+        yield cls.name.hold(name)
 
-    def collect(self, recorder: OverloadRecorder[ShapeCall], *, name: str):
-        recorder.use(self.name, name)
-
-
-from flywheel.context import CollectContext, InstanceContext
-from flywheel.globals import global_collect
-from flywheel.instance_of import InstanceOf
-from flywheel.scoped import scoped_collect
+        # def shape(name: str) -> str:
+        #    ...
+        # return shape
 
 
 @global_collect
-@greet.impl(name="Teague")
-@greet.impl(name="Grey")
-def greet_someone(name: str | int) -> str:
+@greet._.collect(name="Teague")
+@greet._.collect(name="Grey")
+def greet_someone(name: str) -> str:
     return "Stargaztor"
+
 
 reveal_type(greet_someone)
 

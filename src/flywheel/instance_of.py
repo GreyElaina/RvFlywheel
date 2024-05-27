@@ -16,12 +16,10 @@ class InstanceOf(Generic[T]):
         self.target = target
 
     @overload
-    def __get__(self, instance: None, owner: type) -> Self:
-        ...
+    def __get__(self, instance: None, owner: type) -> Self: ...
 
     @overload
-    def __get__(self, instance: Any, owner: type) -> T:
-        ...
+    def __get__(self, instance: Any, owner: type) -> T: ...
 
     def __get__(self, instance: Any, owner: type):
         if instance is None:

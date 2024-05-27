@@ -7,11 +7,12 @@ from typing import TYPE_CHECKING, Any, Mapping, MutableMapping
 from .typing import TEntity
 
 if TYPE_CHECKING:
+    from .fn.endpoint import FnCollectEndpoint
     from .fn.record import FnImplement, FnRecord
 
 
 class CollectContext:
-    fn_implements: dict[FnImplement, FnRecord]
+    fn_implements: dict[FnImplement, dict[FnCollectEndpoint, FnRecord]]
 
     def __init__(self):
         self.fn_implements = {}

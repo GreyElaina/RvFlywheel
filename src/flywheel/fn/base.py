@@ -1,76 +1,45 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Callable, Generic, Protocol, Type, TypeVar
+from typing import TYPE_CHECKING, Any, Callable, Generic, Protocol, TypeVar
 
-from typing_extensions import Concatenate
+from typing_extensions import Concatenate, ParamSpec
 
-from ..entity import BaseEntity
-from ..globals import iter_layout
-from ..typing import CR, AssignKeeper, Call, OutP, P, R
-from .compose import FnCompose
-from .implement import FnImplementEntity, OverloadRecorder
+from flywheel.globals import iter_layout
+from flywheel.typing import CR
+
+from .record import FnImplement
 
 if TYPE_CHECKING:
-    from .record import FnRecord
+    from .compose import FnCompose
 
-K = TypeVar("K")
-
-CCall = TypeVar("CCall", bound=Callable, covariant=True)
-CCollect = TypeVar("CCollect", bound=Callable, covariant=True)
-C = TypeVar("C", bound=Callable)
+FC = TypeVar("FC", bound="FnCompose", covariant=True)
+P = ParamSpec("P")
+R = TypeVar("R", covariant=True)
 
 
-class ComposeShape(Protocol[CCollect, CCall]):
+class _CallDef(Protocol[CR]):
     @property
-    def collect(self) -> CCollect:
-        ...
-
-    @property
-    def call(self) -> CCall:
-        ...
+    def call(self) -> CR: ...
 
 
-FnDef = Type[ComposeShape[CCollect, Callable[Concatenate["FnRecord", OutP], R]]]
+class Fn(Generic[FC]):
+    def __init__(self, compose: type[FC]):
+        self.compose = compose(self)
 
-
-class Fn(Generic[CCollect, CCall], BaseEntity):
-    desc: FnCompose
-
-    def __init__(self, compose: type[FnCompose]):
-        self.desc = compose(self)
-
-    @classmethod
-    def declare(cls, desc: FnDef[C, OutP, R]) -> Fn[C, Callable[OutP, R]]:
-        return cls(desc)  # type: ignore
+    # def entity(self, impl: C) -> FnImplementEntity[C]:
+    #     return FnImplementEntity(impl)
 
     @property
-    def impl(
-        self: Fn[Callable[Concatenate[OverloadRecorder[CR], OutP], Any], Any],
-    ) -> Callable[OutP, AssignKeeper[Call[..., CR]]]:
-        def wrapper(*args: OutP.args, **kwargs: OutP.kwargs):
-            def inner(impl: Callable[P, R] | FnImplementEntity[Callable[P, R]]):
-                if not isinstance(impl, FnImplementEntity):
-                    impl = FnImplementEntity(impl)
+    def _(self):
+        return type(self.compose)
 
-                impl.add_target(self, *args, **kwargs)
-                return impl
+    def __call__(self: Fn[_CallDef[Callable[Concatenate[Any, P], R]]], *args: P.args, **kwargs: P.kwargs) -> R:  # type: ignore
+        sign = FnImplement(self)
 
-            return inner
+        for layout in iter_layout(self):
+            if sign in layout.fn_implements:
+                records = layout.fn_implements[sign]
 
-        return wrapper  # type: ignore
-
-    def _call(self, *args, **kwargs):
-        signature = self.desc.signature()
-
-        for context in iter_layout(signature):
-            if signature not in context.fn_implements:
-                continue
-
-            record = context.fn_implements[signature]
-            return record.spec.desc.call(record, *args, **kwargs)
+            return self.compose.call(records, *args, **kwargs)
         else:
-            raise NotImplementedError("cannot find any record with given fn declaration")
-
-    @property
-    def __call__(self) -> CCall:
-        return self._call  # type: ignore
+            raise NotImplementedError

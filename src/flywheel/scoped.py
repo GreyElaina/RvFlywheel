@@ -5,19 +5,19 @@ from typing import Any, Callable
 
 from .context import CollectContext
 from .globals import COLLECTING_CONTEXT_VAR, GLOBAL_COLLECT_CONTEXT, GLOBAL_INSTANCE_CONTEXT, INSTANCE_CONTEXT_VAR
-from .typing import TYPE_CHECKING, AssignKeeperCls, P, R, TEntity
+from .typing import TYPE_CHECKING, P, R, TEntity
 
 if TYPE_CHECKING:
     from typing_extensions import Concatenate
 
-    from .fn.base import Call, Fn
-    from .fn.implement import FnImplementEntity, OverloadRecorder
+    from flywheel.fn.endpoint import FnCollectEndpoint
+
+    from .fn.implement import FnImplementEntity
     from .fn.record import FnImplement, FnRecord
-    from .typing import CR, OutP
 
 
 class scoped_collect(CollectContext):
-    fn_implements: dict[FnImplement, FnRecord]
+    fn_implements: dict[FnImplement, dict[FnCollectEndpoint, FnRecord]]
     _tocollect_list: dict[FnImplementEntity, None]
     finalize_cbs: list[Callable[[scoped_collect], Any]]
     cls: type | None = None
@@ -56,7 +56,7 @@ class scoped_collect(CollectContext):
 
     @property
     def target(self):
-        from .fn.implement import FnImplementEntity
+        # from .fn.implement import FnImplementEntity
 
         class LocalEndpoint:
             collector = self
@@ -82,24 +82,5 @@ class scoped_collect(CollectContext):
                     return func(instance, *args, **kwargs)
 
                 return wrapper
-
-            @staticmethod
-            def impl(
-                fn: Fn[Callable[Concatenate[OverloadRecorder[CR], OutP], Any], Any], *args: OutP.args, **kwargs: OutP.kwargs
-            ) -> AssignKeeperCls[Call[..., CR]]:
-                def inner(impl: Callable[Concatenate[Any, P], R] | FnImplementEntity[Callable[P, R]]):
-                    if not isinstance(impl, FnImplementEntity):
-                        if not hasattr(impl, "__wrapped__"):
-                            impl_call = LocalEndpoint.ensure_self(impl)
-                        else:
-                            impl_call: Callable[P, R] = impl  # type: ignore
-
-                        impl = FnImplementEntity(impl_call)
-
-                    impl.add_target(fn, *args, **kwargs)
-                    self._tocollect_list[impl] = None
-                    return impl
-
-                return inner  # type: ignore
 
         return LocalEndpoint

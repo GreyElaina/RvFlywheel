@@ -5,12 +5,10 @@ from typing import TypeVar
 from flywheel.fn.base import Fn
 from flywheel.fn.compose import FnCompose
 from flywheel.fn.endpoint import FnCollectEndpoint
-from flywheel.fn.record import FnRecord
 from flywheel.globals import global_collect
 from flywheel.overloads import SimpleOverload
-from typing_extensions import reveal_type
-
 from flywheel.typing import RecordsT
+from typing_extensions import reveal_type
 
 T = TypeVar("T")
 
@@ -32,7 +30,7 @@ class test(FnCompose):
         return a(type)
 
 
-reveal_type(test._.normal)
+reveal_type(test._.normal(int))
 
 
 @global_collect

@@ -2,14 +2,12 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, Callable, Generic, TypeVar
 
-from ..typing import RecordsT
+from ..typing import RecordsT, C
 from .overload import FnOverload, TCallValue
 
 if TYPE_CHECKING:
     from .compose import FnCompose
     from .endpoint import FnCollectEndpoint
-
-C = TypeVar("C", bound=Callable)
 
 
 class FnHarvestControl(Generic[C]):

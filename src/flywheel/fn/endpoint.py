@@ -1,33 +1,20 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, Callable, Generator, Generic, Protocol, TypeVar, Union, overload
+from typing import TYPE_CHECKING, Any, Callable, Generator, Generic, Protocol, overload
 
-from typing_extensions import Concatenate, ParamSpec
+from typing_extensions import Concatenate
 
-from ..typing import RecordsT
+from ..typing import CQ, P1, P2, C, CnQ, CnR, P, R, RecordsT, T
 from .compose import FnCompose
 from .harvest import FnHarvestControl
 from .implement import FnImplementEntity
 from .record import FnOverloadSignal
 
-T = TypeVar("T")
-T_contra = TypeVar("T_contra", contravariant=True)
-C = TypeVar("C", bound=Callable)
-C_contra = TypeVar("C_contra", contravariant=True, bound=Callable)
-CNR = TypeVar("CNR", covariant=True, bound=Union[Callable, None])
-CN_contra = TypeVar("CN_contra", contravariant=True, bound=Union[Callable, None])
-P = ParamSpec("P")
-K = TypeVar("K")
-
-P1 = ParamSpec("P1")
-R = TypeVar("R", covariant=True)
-P2 = ParamSpec("P2")
-
 CollectEndpointTarget = Generator[FnOverloadSignal, None, T]
 
 
-class EndpointCollectReceiver(Protocol[CNR]):
+class EndpointCollectReceiver(Protocol[CnR]):
     @overload
     def __call__(self: EndpointCollectReceiver[None], value: C) -> FnImplementEntity[C]: ...
     @overload
@@ -37,7 +24,7 @@ class EndpointCollectReceiver(Protocol[CNR]):
 
 
 @dataclass(init=False, eq=True, unsafe_hash=True)
-class FnCollectEndpoint(Generic[P, CN_contra]):
+class FnCollectEndpoint(Generic[P, CnQ]):
     @overload
     def __init__(
         self: FnCollectEndpoint[P1, Callable[P2, R]],
@@ -64,11 +51,11 @@ class FnCollectEndpoint(Generic[P, CN_contra]):
         return self.compose.fn
 
     @overload
-    def __get__(self: FnCollectEndpoint[P1, None], instance: None, owner: type[K]) -> Callable[P1, EndpointCollectReceiver[Callable]]:
+    def __get__(self: FnCollectEndpoint[P1, None], instance: None, owner: type) -> Callable[P1, EndpointCollectReceiver[Callable]]:
         ...
 
     @overload
-    def __get__(self: FnCollectEndpoint[P1, C_contra], instance: None, owner: type[K]) -> Callable[P1, EndpointCollectReceiver[C_contra]]:
+    def __get__(self: FnCollectEndpoint[P1, CQ], instance: None, owner: type) -> Callable[P1, EndpointCollectReceiver[CQ]]:
         ...
 
     @overload
@@ -78,22 +65,22 @@ class FnCollectEndpoint(Generic[P, CN_contra]):
 
     @overload
     def __get__(
-        self: FnCollectEndpoint[..., C_contra], instance: FnCompose, owner: Any
-    ) -> Callable[[RecordsT], FnHarvestControl[C_contra]]: ...
+        self: FnCollectEndpoint[..., CQ], instance: FnCompose, owner: Any
+    ) -> Callable[[RecordsT], FnHarvestControl[CQ]]: ...
 
     def __get__(self, instance, owner) -> Any:
         if instance is None:
-            return self.get_collect_receiver
+            return self.get_collect_entity
 
         def harvest_wrapper(records: RecordsT):
-            return self.get_harvest_control(instance, records)
+            return self.get_control(instance, records)
 
         return harvest_wrapper
 
-    def get_harvest_control(self, instance: FnCompose, records: RecordsT) -> FnHarvestControl:
+    def get_control(self, instance: FnCompose, records: RecordsT) -> FnHarvestControl:
         return FnHarvestControl(self, instance, records)
     
-    def get_collect_receiver(self, *args: P.args, **kwargs: P.kwargs):
+    def get_collect_entity(self, *args: P.args, **kwargs: P.kwargs):
         def receiver(entity: C | FnImplementEntity[C]) -> FnImplementEntity[C]:
             if not isinstance(entity, FnImplementEntity):
                 entity = FnImplementEntity(entity)

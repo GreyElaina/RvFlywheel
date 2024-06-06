@@ -2,18 +2,16 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, Callable, Generic, Protocol, TypeVar
 
-from typing_extensions import Concatenate, ParamSpec
+from typing_extensions import Concatenate
 
 from ..globals import iter_layout
-from ..typing import CR
+from ..typing import CR, P, R
 from .record import FnImplement
 
 if TYPE_CHECKING:
     from .compose import FnCompose
 
 FC = TypeVar("FC", bound="FnCompose", covariant=True)
-P = ParamSpec("P")
-R = TypeVar("R", covariant=True)
 
 
 class ExtractCall(Protocol[CR]):

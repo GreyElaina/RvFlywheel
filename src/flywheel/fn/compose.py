@@ -9,8 +9,6 @@ if TYPE_CHECKING:
     from ..typing import RecordsT
     from .base import Fn
 
-FC = TypeVar("FC", bound="FnCompose")
-
 
 class FnCompose:
     singleton: Final = SINGLETON_OVERLOAD

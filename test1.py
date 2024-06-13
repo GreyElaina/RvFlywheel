@@ -14,7 +14,7 @@ class greet(FnCompose):
     name = SimpleOverload("name")
 
     def call(self, records, name: str) -> str:
-        entities = self.collect(records).use(self.name, name)
+        entities = self.collect.get_control(records).use(self.name, name)
 
         if not entities:
             return f"Ordinary, {name}."

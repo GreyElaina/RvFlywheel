@@ -1,14 +1,13 @@
 from __future__ import annotations
 
-from sys import path
-from typing import Any, Callable, Protocol, TypeVar
+from typing import Any, TypeVar
 
 from flywheel.fn.base import Fn
 from flywheel.fn.compose import FnCompose
 from flywheel.fn.endpoint import FnCollectEndpoint
-from flywheel.fn.record import FnRecord
 from flywheel.globals import global_collect
 from flywheel.overloads import SimpleOverload, TypeOverload
+from flywheel.typing import RecordsT
 
 T = TypeVar("T")
 
@@ -18,8 +17,8 @@ class test(FnCompose):
     type = TypeOverload("type")
     sim = SimpleOverload("sim")
 
-    def call(self, records, value: type[T]) -> T:
-        entities = self.collect(records).use(self.sim, value)
+    def call(self, records: RecordsT, value: type[T]) -> T:
+        entities = self.collect.get_control(records).use(self.sim, value)
 
         return entities.first(value)
 
@@ -31,7 +30,6 @@ class test(FnCompose):
         def shape(value: type[T]) -> T: ...
 
         return shape
-
 
 # @global_collect
 # @test.implements(type=str)

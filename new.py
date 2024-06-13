@@ -26,7 +26,7 @@ class test(FnCompose):
         return shape
 
     def call(self, records: RecordsT, type: type[T]) -> T:
-        a = self.normal(records).use(self.sim, type).first
+        a = self.normal.get_control(records).use(self.sim, type).first
         return a(type)
 
 

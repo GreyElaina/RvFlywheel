@@ -1,19 +1,17 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Callable, Generic, TypeVar
+from typing import TYPE_CHECKING, Any, Generic
 
-from ..typing import RecordsT, C
+from ..typing import C, RecordsT
 from .overload import FnOverload, TCallValue
 
 if TYPE_CHECKING:
-    from .compose import FnCompose
     from .endpoint import FnCollectEndpoint
 
 
 class FnHarvestControl(Generic[C]):
-    def __init__(self, endpoint: FnCollectEndpoint, compose: FnCompose, records: RecordsT) -> None:
+    def __init__(self, endpoint: FnCollectEndpoint, records: RecordsT) -> None:
         self.endpoint = endpoint
-        self.compose = compose
         self.records = records
 
     @property
@@ -23,7 +21,7 @@ class FnHarvestControl(Generic[C]):
 
         return self.records[self.endpoint]
 
-    def use(self, overload: FnOverload[Any, Any, TCallValue], value: TCallValue):
+    def use(self: FnHarvestControl[C], overload: FnOverload[Any, Any, TCallValue], value: TCallValue):
         return FnHarvest(self).apply(overload, value)
 
 

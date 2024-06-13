@@ -32,7 +32,7 @@ class greet(FnCompose):
         # 我们不关心 records 的类型。
         # 如果你在乎，它的类型是 dict[FnCollectEndpoint, FnImplementEntity]
 
-        entities = self.someone(records).use(self.name, name)
+        entities = self.someone.get_control(records).use(self.name, name)
         return entities.first(name)
 
     @FnCollectEndpoint
@@ -94,7 +94,7 @@ class greet(FnCompose):
         # 我们不关心 records 的类型。
         # 如果你在乎，它的类型是 dict[FnCollectEndpoint, FnImplementEntity]
 
-        entities = self.someone(records).use(self.name, name)
+        entities = self.someone.get_control(records).use(self.name, name)
 
         if not entities:  # 判断是否存在符合条件的实现
             return f"Ordinary, {name}."

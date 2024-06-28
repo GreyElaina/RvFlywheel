@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Generic
+from typing import TYPE_CHECKING, Any, Generic, Iterator
 
 from ..typing import C
 from .overload import FnOverload, TCallValue
@@ -42,11 +42,11 @@ class FnHarvest(Generic[C]):
 
         return next(reversed(self.result))  # type: ignore
 
-    def __iter__(self) -> list[C]:
+    def __iter__(self) -> Iterator[C]:
         if self.result is None:
             raise NotImplementedError("result is None, cannot iterate")
 
-        return list(self.result)  # type: ignore
+        return reversed(self.result)  # type: ignore
 
     def __bool__(self):
         return bool(self.result)

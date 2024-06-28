@@ -29,7 +29,3 @@ TEntity = TypeVar("TEntity", bound="BaseEntity")
 
 class Collectable(Protocol[P]):
     def collect(self, *args: P.args, **kwargs: P.kwargs) -> Any: ...
-
-
-class Call(Protocol[P, R]):
-    def __call__(self, *args: P.args, **kwargs: P.kwargs) -> R: ...

@@ -12,6 +12,7 @@ from .typing import TYPE_CHECKING, P, R, TEntity
 if TYPE_CHECKING:
     from typing_extensions import Concatenate
 
+    from .fn.endpoint import EndpointCollectReceiver
     from .fn.implement import FnImplementEntity
     from .fn.record import FnImplement, FnRecord
 
@@ -56,7 +57,7 @@ class scoped_collect(CollectContext):
 
     @property
     def target(self):
-        # from .fn.implement import FnImplementEntity
+        from .fn.implement import FnImplementEntity
 
         class LocalEndpoint:
             collector = self
@@ -84,6 +85,21 @@ class scoped_collect(CollectContext):
 
                     instance = INSTANCE_CONTEXT_VAR.get().instances[self.cls]
                     return func(instance, *args, **kwargs)
+
+                return wrapper
+
+            @staticmethod
+            def impl(target: EndpointCollectReceiver[Callable[P, R]]):
+                def wrapper(
+                    entity: Callable[Concatenate[Any, P], R] | FnImplementEntity[Callable[P, R]],
+                ) -> FnImplementEntity[Callable[P, R]]:
+                    if not isinstance(entity, FnImplementEntity):
+                        entity = target(LocalEndpoint.ensure_self(entity))
+                    else:
+                        target(entity)
+
+                    self._tocollect_list[entity] = None
+                    return entity
 
                 return wrapper
 

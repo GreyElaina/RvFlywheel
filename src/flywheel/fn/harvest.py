@@ -40,7 +40,7 @@ class FnHarvest(Generic[C]):
         if self.result is None:
             raise NotImplementedError("result is None, cannot get first item")
 
-        return next(iter(self.result))  # type: ignore
+        return next(reversed(self.result))  # type: ignore
 
     def __iter__(self) -> list[C]:
         if self.result is None:

@@ -3,9 +3,11 @@ from __future__ import annotations
 from typing import TypeVar
 
 from flywheel.fn.endpoint import FnCollectEndpoint
-from flywheel.globals import global_collect
+from flywheel.globals import global_collect, iter_layout, union_scope
 from flywheel.overloads import SimpleOverload
 from typing_extensions import reveal_type
+
+from flywheel.scoped import scoped_collect
 
 T = TypeVar("T")
 
@@ -54,3 +56,18 @@ b = test().call(str)
 
 print(a)
 print(b)
+
+
+class test1(m := scoped_collect.locals().target, static=True):
+    @m.impl(test.normal(type=int))
+    def s(self, type: type[int]):
+        return 2
+
+with test1.collector.lookup_scope():
+    print([i.fn_implements for i in iter_layout()])
+    
+    a = test().call(int)
+    b = test().call(str)
+
+    print(a)
+    print(b)

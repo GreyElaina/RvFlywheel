@@ -2,7 +2,7 @@
 
 Ryanvk Flywheel 是一个 Ryanvk-style 的 utility。
 
-- 在单一入口点上的*几近完美*的自由重载；
+- ~~在单一入口点上的~~*几近完美*的自由重载；
 - 简单灵活的重载机制；
 - *前沿级*的类型支持 [^1] [^2]；
 - 可切换上下文。
@@ -10,7 +10,6 @@ Ryanvk Flywheel 是一个 Ryanvk-style 的 utility。
 Available on PyPI: `elaina-flywheel`。
 
 [^1]: 仅在 Pyright / Basedpyright 上可用。
-
 [^2]: 仍存在无法彻底解决的问题，比如 `FnImplementEntity` 上的类型会因 check-and-narrowing 行为被迫丢失。
 
 ## 使用
@@ -22,17 +21,14 @@ Flywheel 着重于围绕 `Fn` 建设，以提供强大的重载功能为目的�
 ```python
 from typing import Protocol
 
-from flywheel import Fn, FnCompose, FnRecord, SimpleOverload, FnCollectEndpoint
+from flywheel import FnRecord, SimpleOverload, FnCollectEndpoint
 
-@Fn
-class greet(FnCompose):
+class greet:
     name = SimpleOverload("name")
 
-    def call(self, records, name: str) -> str:
-        # 我们不关心 records 的类型。
-        # 如果你在乎，它的类型是 dict[FnCollectEndpoint, FnImplementEntity]
-
-        entities = self.someone.get_control(records).use(self.name, name)
+    @classmethod
+    def call(cls, name: str) -> str:
+        entities = cls.someone.get_control().use(cls.name, name)
         return entities.first(name)
 
     @FnCollectEndpoint
@@ -57,12 +53,12 @@ class greet(FnCompose):
 from flywheel import global_collect
 
 @global_collect
-@greet._.someone(name="Teague")
+@greet.someone(name="Teague")
 def greet_teague(name: str) -> str:
     return "Stargaztor, but in name only."
 
 @global_collect
-@greet._.someone(name="Grey")
+@greet.someone(name="Grey")
 def greet_grey(name: str) -> str:
     return "Symbol, the Founder."
 ```
@@ -70,31 +66,28 @@ def greet_grey(name: str) -> str:
 然后我们调用。
 
 ```python
->>> greet("Teague")
+>>> greet.call("Teague")
 'Stargaztor, but in name only.'
->>> greet("Grey")
+>>> greet.call("Grey")
 'Symbol, the Founder.'
 ```
 
 看上去很不错，按照预期的调度到了相应的实现上；如果我们输入一个*未实现*的字段会怎么样呢？
 
 ```python
->>> greet("Hizuki")
+>>> greet.call("Hizuki")
 NotImplementedError: cannot lookup any implementation with given arguments
 ```
 
 显然，我们并没有面向 `"Hizuki"` 实现一个 `greet`。为了使我们的程序能处理这种情况，我们可以这样修改 `greet` 的声明：
 
 ```python
-@Fn.declare
-class greet(FnCompose):
+class greet:
     name = SimpleOverload("name")  # 指定 name 是必要的。
 
-    def call(self, records, name: str) -> str:
-        # 我们不关心 records 的类型。
-        # 如果你在乎，它的类型是 dict[FnCollectEndpoint, FnImplementEntity]
-
-        entities = self.someone.get_control(records).use(self.name, name)
+    @classmethod
+    def call(cls, name: str) -> str:
+        entities = cls.someone.get_control().use(cls.name, name)
 
         if not entities:  # 判断是否存在符合条件的实现
             return f"Ordinary, {name}."
@@ -105,9 +98,39 @@ class greet(FnCompose):
 这种方法可以提供一种极其灵活的默认实现机制：于是现在我们可以调用 `greet` 了。
 
 ```python
->>> greet("Hizuki")
+>>> greet.call("Hizuki")
 'Ordinary, Hizuki.'
 ```
+
+如果你感觉完全没有必要造个类出来放这些东西，你也可以直接这样写，Flywheel 现在只有 `FnCollectEndpoint` 是特殊的，
+其他的都和一般的方法或函数是一样的。
+
+```python
+NAME_OVERLOAD = SimpleOverload("name")
+
+@FnCollectEndpoint
+def implement_greet(name: str) -> str:
+    yield NAME_OVERLOAD.hold(name)
+
+    def shape(name: str) -> str: ...
+    return shape
+
+def greet(name: str) -> str:
+    entities = implement_greet.get_control().use(NAME_OVERLOAD, name)
+
+    if not entities:
+        return f"Ordinary, {name}."
+
+    return entities.first(name)
+
+@global_collect
+@implement_greet(name="Teague")
+def greet_teague(name: str) -> str:
+    return "Stargaztor, but in name only."
+```
+
+`FnCollectEndpoint` 和具体的调用实现可以放在各个不同的地方 —— 他们都是独立存在的，也就是说，你可以同时写一个面向扩展开发者的 `ExtensionTrait`，
+和一个面向用户的 `Userspace` 类或模块，并在 `Userspace` 中调用 `ExtensionTrait` 中声明的 `FnCollectEndpoint`。
 
 ## 重载机制
 
@@ -141,7 +164,7 @@ class SimpleOverload(FnOverload[SimpleOverloadSignature, Any, Any]):
         if signature.value not in scope:
             # 在命名空间中配置用于存放实现引用的集合，如果没有就开辟，否则复用。
             # 这里会用 dict[Callable, None]，原因是我们需要有序 +　唯一。
-            target = scope[signature.value] = {}  
+            target = scope[signature.value] = {}
         else:
             target = scope[signature.value]
 
@@ -208,12 +231,12 @@ with local_cx.lookup_scope():
 from flywheel import local_collect
 
 @local_collect
-@greet._.someone(name="Teague")
+@greet.someone(name="Teague")
 def greet_teague(name: str) -> str:
     return "Stargaztor, but in name only."
 
 @local_collect
-@greet._.someone(name="Grey")
+@greet.someone(name="Grey")
 def greet_grey(name: str) -> str:
     return "Symbol, the Founder."
 ```
@@ -232,7 +255,7 @@ from flywheel import scoped_collect
 
 class greet_implements(m := scoped_collect.globals().target, static=True):
     @m.collect
-    @greet._.someone(name="Teague")
+    @greet.someone(name="Teague")
     @m.ensure_self
     def greet_teague(self, name: str) -> str:
         return "Stargaztor, but in name only."
@@ -267,8 +290,8 @@ Flywheel 允许你这么做...：
 
 ```python
 @global_collect
-@greet._.someone(name="Teague")
-@greet._.someone(name="Grey")
+@greet.someone(name="Teague")
+@greet.someone(name="Grey")
 def greet_stargaztor(name: str) -> str:
     return f"Stargaztor"
 ```
@@ -371,7 +394,6 @@ class sth_implements(m := scoped_collect.locals().target, static=True):
     def build_static(cls):
         return cls(GLOBAL_AIOHTTP_SESSION)
 ```
-
 
 ### 全局上下文
 

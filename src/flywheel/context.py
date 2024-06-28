@@ -4,14 +4,14 @@ from collections import ChainMap
 from contextlib import contextmanager
 from typing import TYPE_CHECKING, Any, Mapping, MutableMapping
 
-from .typing import RecordsT, TEntity
+from .typing import TEntity
 
 if TYPE_CHECKING:
-    from .fn.record import FnImplement
+    from .fn.record import FnImplement, FnRecord
 
 
 class CollectContext:
-    fn_implements: dict[FnImplement, RecordsT]
+    fn_implements: dict[FnImplement, FnRecord]
 
     def __init__(self):
         self.fn_implements = {}

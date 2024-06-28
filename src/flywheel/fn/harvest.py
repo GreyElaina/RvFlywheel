@@ -2,24 +2,18 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, Generic
 
-from ..typing import C, RecordsT
+from ..typing import C
 from .overload import FnOverload, TCallValue
 
 if TYPE_CHECKING:
     from .endpoint import FnCollectEndpoint
+    from .record import FnRecord
 
 
 class FnHarvestControl(Generic[C]):
-    def __init__(self, endpoint: FnCollectEndpoint, records: RecordsT) -> None:
+    def __init__(self, endpoint: FnCollectEndpoint, record: FnRecord) -> None:
         self.endpoint = endpoint
-        self.records = records
-
-    @property
-    def record(self):
-        if self.endpoint not in self.records:
-            raise NotImplementedError(f"endpoint {self.endpoint} not found in records")
-
-        return self.records[self.endpoint]
+        self.record = record
 
     def use(self: FnHarvestControl[C], overload: FnOverload[Any, Any, TCallValue], value: TCallValue):
         return FnHarvest(self).apply(overload, value)

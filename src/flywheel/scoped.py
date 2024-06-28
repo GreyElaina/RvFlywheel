@@ -12,13 +12,12 @@ from .typing import TYPE_CHECKING, P, R, TEntity
 if TYPE_CHECKING:
     from typing_extensions import Concatenate
 
-    from .fn.endpoint import FnCollectEndpoint
     from .fn.implement import FnImplementEntity
     from .fn.record import FnImplement, FnRecord
 
 
 class scoped_collect(CollectContext):
-    fn_implements: dict[FnImplement, dict[FnCollectEndpoint, FnRecord]]
+    fn_implements: dict[FnImplement, FnRecord]
     _tocollect_list: dict[FnImplementEntity, None]
     finalize_cbs: list[Callable[[scoped_collect], Any]]
     cls: type | None = None

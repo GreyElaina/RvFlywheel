@@ -2,19 +2,14 @@ from __future__ import annotations
 
 from typing import TypeVar
 
-from flywheel.fn.base import Fn
-from flywheel.fn.compose import FnCompose
 from flywheel.fn.endpoint import FnCollectEndpoint
 from flywheel.globals import global_collect
 from flywheel.overloads import SimpleOverload
-from flywheel.typing import RecordsT
 from typing_extensions import reveal_type
 
 T = TypeVar("T")
 
-
-@Fn
-class test(FnCompose):
+class test():
     sim = SimpleOverload("sim")
 
     @FnCollectEndpoint
@@ -25,28 +20,37 @@ class test(FnCompose):
         def shape(type: type[T]) -> T: ...
         return shape
 
-    def call(self, records: RecordsT, type: type[T]) -> T:
-        a = self.normal.get_control(records).use(self.sim, type).first
+    def call(self, type: type[T]) -> T:
+        a = self.normal.get_control().use(self.sim, type).first
         return a(type)
 
+@FnCollectEndpoint
+def normal_bare(type: type[T]):
+    yield test.sim.hold(type)
 
-reveal_type(test._.normal(int))
+    def shape(type: type[T]) -> T: ...
+    return shape
 
+reveal_type(test.normal)
+reveal_type(test.normal(int))
+
+reveal_type(normal_bare)
+reveal_type(normal_bare(int))
 
 @global_collect
-@test._.normal(type=int)
+@test.normal(type=int)
 def s(type: type[int]):
     return 1
 
 
 @global_collect
-@test._.normal(type=str)
+@test.normal(type=str)
 def s1(type: type[str]):
     return "111"
 
 
-a = test(int)
-b = test(str)
+a = test().call(int)
+b = test().call(str)
 
 print(a)
 print(b)

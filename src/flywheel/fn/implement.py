@@ -8,37 +8,32 @@ from ..typing import CR, P
 from .record import FnRecord
 
 if TYPE_CHECKING:
-    from .endpoint import FnCollectEndpoint
+    from .endpoint import CollectEndpointTarget, FnCollectEndpoint
 
 
 class FnImplementEntity(Generic[CR], BaseEntity):
-    targets: list[tuple[FnCollectEndpoint, type, tuple[Any, ...], dict[str, Any]]]
+    targets: list[tuple[FnCollectEndpoint, CollectEndpointTarget]]
     impl: CR
 
     def __init__(self, impl: CR):
         self.targets = []
         self.impl = impl
 
-    def add_target(self, endpoint: FnCollectEndpoint[P, Any], cls: type, *args: P.args, **kwargs: P.kwargs):
-        self.targets.append((endpoint, cls, args, kwargs))
+    def add_target(self, endpoint: FnCollectEndpoint[P, Any], generator: CollectEndpointTarget):
+        self.targets.append((endpoint, generator))
 
     def collect(self, collector: CollectContext):
         super().collect(collector)
 
-        for endpoint, cls, args, kwargs in self.targets:
-            record_signature = endpoint.fn.compose.signature()
+        for endpoint, generator in self.targets:
+            record_signature = endpoint.signature
 
             if record_signature in collector.fn_implements:
-                records = collector.fn_implements[record_signature]
+                record = collector.fn_implements[record_signature]
             else:
-                records = collector.fn_implements[record_signature] = {}
+                record = collector.fn_implements[record_signature] = FnRecord()
 
-            if endpoint in records:
-                record = records[endpoint]
-            else:
-                record = records[endpoint] = FnRecord()
-
-            for signal in endpoint.target(cls, *args, **kwargs):  # type: ignore
+            for signal in generator:
                 signal.overload.lay(record, signal.value, self.impl)
 
         return self

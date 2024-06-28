@@ -6,12 +6,13 @@ from typing_extensions import ParamSpec
 
 if TYPE_CHECKING:
     from .entity import BaseEntity
-    from .fn import FnCollectEndpoint, FnRecord
 
 
 T = TypeVar("T")
 R = TypeVar("R", covariant=True)
 Q = TypeVar("Q", contravariant=True)
+K = TypeVar("K")
+K1 = TypeVar("K1")
 
 C = TypeVar("C", bound=Callable)
 CQ = TypeVar("CQ", contravariant=True, bound=Callable)
@@ -24,7 +25,6 @@ P1 = ParamSpec("P1")
 P2 = ParamSpec("P2")
 
 TEntity = TypeVar("TEntity", bound="BaseEntity")
-RecordsT = dict["FnCollectEndpoint", "FnRecord"]
 
 
 class Collectable(Protocol[P]):

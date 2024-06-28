@@ -4,7 +4,7 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, Callable
 
 if TYPE_CHECKING:
-    from .base import Fn
+    from .endpoint import FnCollectEndpoint
     from .overload import FnOverload
 
 
@@ -13,7 +13,7 @@ if TYPE_CHECKING:
 
 @dataclass(eq=True, frozen=True)
 class FnImplement:
-    fn: Fn
+    endpoint: FnCollectEndpoint
 
 
 @dataclass(eq=True, frozen=True)

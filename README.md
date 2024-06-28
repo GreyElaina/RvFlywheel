@@ -132,6 +132,8 @@ def greet_teague(name: str) -> str:
 `FnCollectEndpoint` and the specific call implementations can be placed in different locations — they exist independently, meaning you can write an `ExtensionTrait` for extension developers,
 and a `Userspace` class or module for users, and call `FnCollectEndpoint` declared in `ExtensionTrait` in `Userspace`.
 
+For semantic reasons, you’d better not just write `@FnCollectEndpoint def collect()`, but something like `@FnCollectEndpoint def implement_greet()`.
+
 ## Overloading Mechanism
 
 Flywheel's overloading mechanism is implemented based on `FnOverload`, which includes the following four main functions:
@@ -308,6 +310,15 @@ If you need to use it with `scoped_collect`, note to *sandwich* the `Fn.impl` ca
 @m.ensure_self
 def greet_teague(self, name: str) -> str:
     return f"Stargaztor."
+```
+
+Or maybe you should try our new and awesome `m.impl`?
+
+```python
+@m.impl(greet.collect(name="Harlan"))
+@m.impl(greet.collect(name="Sen"))
+def greet_stargaztor(name: str) -> str:
+    return f"Stargaztor, also couple, then parent, and then broken parent."
 ```
 
 ## Instance Context

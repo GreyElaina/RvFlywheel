@@ -132,6 +132,8 @@ def greet_teague(name: str) -> str:
 `FnCollectEndpoint` 和具体的调用实现可以放在各个不同的地方 —— 他们都是独立存在的，也就是说，你可以同时写一个面向扩展开发者的 `ExtensionTrait`，
 和一个面向用户的 `Userspace` 类或模块，并在 `Userspace` 中调用 `ExtensionTrait` 中声明的 `FnCollectEndpoint`。
 
+基于语义性上的考虑，你最好别只写 `@FnCollectEndpoint def collect()`，而是类似 `@FnCollectEndpoint def implement_greet()` 这样。
+
 ## 重载机制
 
 Flywheel 的重载机制是基于 `FnOverload` 的实现，其包含了以下 4 个主要功能：
@@ -307,6 +309,15 @@ def greet_stargaztor(name: str) -> str:
 @m.ensure_self
 def greet_teague(self, name: str) -> str:
     return f"Stargaztor."
+```
+
+或者你试试我们又新又好的 `m.impl`？
+
+```python
+@m.impl(greet.collect(name="Harlan"))
+@m.impl(greet.collect(name="Sen"))
+def greet_stargaztor(name: str) -> str:
+    return f"Stargaztor, also couple, then parent, and then broken parent."
 ```
 
 ## 实例上下文

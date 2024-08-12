@@ -4,15 +4,19 @@ import functools
 from collections import defaultdict
 from contextlib import contextmanager
 from contextvars import ContextVar, copy_context
-from typing import Any, Callable, Generator, Tuple
+from typing import TYPE_CHECKING, Any, Callable, Generator, Tuple
 
 from .context import CollectContext, InstanceContext
 from .typing import P, R, TEntity
+
+if TYPE_CHECKING:
+    from .fn.implement import FnImplementEntity
 
 GLOBAL_COLLECT_CONTEXT = CollectContext()
 GLOBAL_INSTANCE_CONTEXT = InstanceContext()
 
 COLLECTING_CONTEXT_VAR = ContextVar("CollectingContext", default=GLOBAL_COLLECT_CONTEXT)
+COLLECTING_IMPLEMENT_ENTITY: ContextVar[FnImplementEntity] = ContextVar("CollectingImplementEntity")
 LOOKUP_LAYOUT_VAR = ContextVar[Tuple[CollectContext, ...]]("LookupContext", default=(GLOBAL_COLLECT_CONTEXT,))
 INSTANCE_CONTEXT_VAR = ContextVar("InstanceContext", default=GLOBAL_INSTANCE_CONTEXT)
 

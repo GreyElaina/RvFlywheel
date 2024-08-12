@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING, Any, Generic
 
 from ..context import CollectContext
 from ..entity import BaseEntity
+from ..globals import COLLECTING_IMPLEMENT_ENTITY
 from ..typing import CR, P
 from .record import FnRecord
 
@@ -25,18 +26,22 @@ class FnImplementEntity(Generic[CR], BaseEntity):
     def collect(self, collector: CollectContext):
         super().collect(collector)
 
-        for endpoint, generator in self.targets:
-            record_signature = endpoint.signature
+        token = COLLECTING_IMPLEMENT_ENTITY.set(self)
+        try:
+            for endpoint, generator in self.targets:
+                record_signature = endpoint.signature
 
-            if record_signature in collector.fn_implements:
-                record = collector.fn_implements[record_signature]
-            else:
-                record = collector.fn_implements[record_signature] = FnRecord()
+                if record_signature in collector.fn_implements:
+                    record = collector.fn_implements[record_signature]
+                else:
+                    record = collector.fn_implements[record_signature] = FnRecord()
 
-            for signal in generator:
-                signal.overload.lay(record, signal.value, self.impl)
+                for signal in generator:
+                    signal.overload.lay(record, signal.value, self.impl)
 
-        return self
+            return self
+        finally:
+            COLLECTING_IMPLEMENT_ENTITY.reset(token)
 
     def _call(self, *args, **kwargs):
         return self.impl(*args, **kwargs)
@@ -48,3 +53,7 @@ class FnImplementEntity(Generic[CR], BaseEntity):
     @property
     def super(self) -> CR:
         return self.targets[0][0].fn  # type: ignore
+
+    @staticmethod
+    def current():
+        return COLLECTING_IMPLEMENT_ENTITY.get()

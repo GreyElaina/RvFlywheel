@@ -3,11 +3,10 @@ from __future__ import annotations
 from typing import TypeVar
 
 from flywheel.fn.endpoint import FnCollectEndpoint
-from flywheel.globals import global_collect, iter_layout, union_scope
+from flywheel.globals import global_collect, iter_layout
 from flywheel.overloads import SimpleOverload
-from typing_extensions import reveal_type
-
 from flywheel.scoped import scoped_collect
+from typing_extensions import reveal_type
 
 T = TypeVar("T")
 

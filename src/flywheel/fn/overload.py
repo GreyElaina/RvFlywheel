@@ -4,7 +4,7 @@ from typing import Callable, Generic, TypeVar
 
 from typing_extensions import final
 
-from .record import FnOverloadSignal, FnRecord
+from .record import CollectSignal, FnRecord
 
 TOverload = TypeVar("TOverload", bound="FnOverload", covariant=True)
 TCallValue = TypeVar("TCallValue")
@@ -18,7 +18,7 @@ class FnOverload(Generic[TSignature, TCollectValue, TCallValue]):
 
     @final
     def hold(self, value: TCollectValue):
-        return FnOverloadSignal(self, value)
+        return CollectSignal(self, value)
 
     @final
     def dig(self, record: FnRecord, call_value: TCallValue, *, name: str | None = None) -> dict[Callable, None]:

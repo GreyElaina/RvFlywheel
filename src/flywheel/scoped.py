@@ -14,11 +14,11 @@ if TYPE_CHECKING:
 
     from .fn.endpoint import EndpointCollectReceiver
     from .fn.implement import FnImplementEntity
-    from .fn.record import FnImplement, FnRecord
+    from .fn.record import FnRecord, FnRecordLabel
 
 
 class scoped_collect(CollectContext):
-    fn_implements: dict[FnImplement, FnRecord]
+    fn_implements: dict[FnRecordLabel, FnRecord]
     _tocollect_list: dict[FnImplementEntity, None]
     finalize_cbs: list[Callable[[scoped_collect], Any]]
     cls: type | None = None

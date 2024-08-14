@@ -7,7 +7,7 @@ from contextvars import ContextVar, copy_context
 from typing import TYPE_CHECKING, Any, Callable, Generator, Tuple
 
 from .context import CollectContext, InstanceContext
-from .typing import P, R, T, TEntity
+from .typing import P, R, TEntity
 
 if TYPE_CHECKING:
     from .fn.implement import FnImplementEntity
@@ -72,12 +72,3 @@ def union_scope(*contexts: CollectContext):
         yield
     finally:
         LOOKUP_LAYOUT_VAR.reset(token)
-
-
-@contextmanager
-def cvar(var: ContextVar[T], val: T):
-    token = var.set(val)
-    try:
-        yield val
-    finally:
-        var.reset(token)

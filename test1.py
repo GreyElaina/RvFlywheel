@@ -12,12 +12,16 @@ class greet():
 
     @classmethod
     def call(cls, name: str) -> str:
-        entities = cls.collect.get_control().use(cls.name, name)
+        for selection in cls.collect.select(False):
+            if not selection.harvest(cls.name, name):
+                continue
 
-        if not entities:
+            selection.complete()
+
+        if not selection:
             return f"Ordinary, {name}."
 
-        return entities.first(name)
+        return selection(name)
 
     @FnCollectEndpoint
     @classmethod

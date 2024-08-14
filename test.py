@@ -14,9 +14,13 @@ class test:
     sim = SimpleOverload("sim")
 
     def call(self, value: type[T]) -> T:
-        entities = self.collect.get_control().use(self.sim, value)
+        for selection in self.collect.select():
+            if not selection.harvest(self.sim, value):
+                continue
 
-        return entities.first(value)
+            selection.complete()
+
+        return selection(value)
 
     @FnCollectEndpoint
     @classmethod

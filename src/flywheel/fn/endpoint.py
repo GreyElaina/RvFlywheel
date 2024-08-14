@@ -5,14 +5,12 @@ from typing import Any, Callable, Generator, Generic, Protocol, TypeVar, overloa
 
 from typing_extensions import Concatenate, Self
 
-from flywheel.globals import iter_layout
-
 from ..typing import CQ, K1, P1, P2, C, CnQ, CnR, P, R, T
-from .harvest import FnHarvestControl
 from .implement import FnImplementEntity
-from .record import FnImplement, FnOverloadSignal
+from .record import CollectSignal, FnRecordLabel
+from .selection import Candidates
 
-CollectEndpointTarget = Generator[FnOverloadSignal, None, T]
+CollectEndpointTarget = Generator[CollectSignal, None, T]
 
 A = TypeVar("A")
 B = TypeVar("B", contravariant=True)
@@ -59,17 +57,8 @@ class FnCollectEndpointAgent(Generic[P, CnQ, A, B]):
 
         return receiver
 
-    def get_control(self: FnCollectEndpointAgent[..., C, Any, Any]) -> FnHarvestControl[C]:
-        sig = self.endpoint.signature
-
-        for i in iter_layout(self.endpoint):
-            if sig in i.fn_implements:
-                record = i.fn_implements[sig]
-                break
-        else:
-            raise NotImplementedError(f"Cannot find record for {sig!r} in {self.endpoint!r}")
-
-        return FnHarvestControl(self.endpoint, record)
+    def select(self: FnCollectEndpointAgent[..., C, Any, Any], expect_complete: bool = True) -> Candidates[C]:
+        return Candidates(self.endpoint, expect_complete)
 
 
 @dataclass(init=False, eq=True, unsafe_hash=True)
@@ -87,10 +76,13 @@ class FnCollectEndpoint(Generic[P, CnQ]):
 
     @property
     def signature(self):
-        return FnImplement(self)
+        return FnRecordLabel(self)
 
     @overload
     def __get__(self, instance: FnCollectEndpointAgent, owner: Any) -> Self: ...
+
+    @overload
+    def __get__(self, instance: Candidates, owner: Any) -> Self: ...
 
     @overload
     def __get__(self, instance: A, owner: type[B]) -> FnCollectEndpointAgent[P, CnQ, A, type[B]]: ...
@@ -111,14 +103,5 @@ class FnCollectEndpoint(Generic[P, CnQ]):
 
         return receiver
 
-    def get_control(self: FnCollectEndpoint[..., C]) -> FnHarvestControl[C]:
-        sig = self.signature
-
-        for i in iter_layout(self):
-            if sig in i.fn_implements:
-                record = i.fn_implements[sig]
-                break
-        else:
-            raise NotImplementedError  # TODO
-
-        return FnHarvestControl(self, record)
+    def select(self: FnCollectEndpoint[..., C], expect_complete: bool = True) -> Candidates[C]:
+        return Candidates(self, expect_complete)

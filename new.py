@@ -22,8 +22,13 @@ class test():
         return shape
 
     def call(self, type: type[T]) -> T:
-        a = self.normal.get_control().use(self.sim, type).first
-        return a(type)
+        for selection in self.normal.select():
+            if not selection.harvest(self.sim, type):
+                continue
+
+            selection.complete()
+
+        return selection(type)
 
 @FnCollectEndpoint
 def normal_bare(type: type[T]):

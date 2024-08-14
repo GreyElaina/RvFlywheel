@@ -12,7 +12,7 @@ if TYPE_CHECKING:
 
 
 @dataclass(eq=True, frozen=True)
-class FnImplement:
+class FnRecordLabel:
     endpoint: FnCollectEndpoint
 
 
@@ -23,6 +23,6 @@ class FnRecord:
 
 
 @dataclass(eq=True, frozen=True)
-class FnOverloadSignal:
+class CollectSignal:
     overload: FnOverload
     value: Any

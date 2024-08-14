@@ -4,8 +4,8 @@ from typing import TYPE_CHECKING, Any, Generic
 
 from ..context import CollectContext
 from ..entity import BaseEntity
-from ..globals import COLLECTING_IMPLEMENT_ENTITY, COLLECTING_TARGET_RECORD, cvar
-from ..typing import CR, P
+from ..globals import COLLECTING_IMPLEMENT_ENTITY, COLLECTING_TARGET_RECORD
+from ..typing import CR, P, cvar
 from .record import FnRecord
 
 if TYPE_CHECKING:
@@ -55,3 +55,7 @@ class FnImplementEntity(Generic[CR], BaseEntity):
     @staticmethod
     def current():
         return COLLECTING_IMPLEMENT_ENTITY.get()
+
+
+def wrap_entity(entity: CR) -> FnImplementEntity[CR]:
+    return FnImplementEntity(entity)

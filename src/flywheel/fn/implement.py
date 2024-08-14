@@ -1,11 +1,11 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Generic
+from typing import TYPE_CHECKING, Any, Callable, Generic
 
 from ..context import CollectContext
 from ..entity import BaseEntity
 from ..globals import COLLECTING_IMPLEMENT_ENTITY, COLLECTING_TARGET_RECORD
-from ..typing import CR, P, cvar
+from ..typing import CR, P, R, cvar
 from .record import FnRecord
 
 if TYPE_CHECKING:
@@ -41,13 +41,9 @@ class FnImplementEntity(Generic[CR], BaseEntity):
 
         return self
 
-    def _call(self, *args, **kwargs):
+    def __call__(self: FnImplementEntity[Callable[P, R]], *args: P.args, **kwargs: P.kwargs):
         return self.impl(*args, **kwargs)
-
-    @property
-    def __call__(self) -> CR:
-        return self._call  # type: ignore
-
+    
     @property
     def super(self) -> CR:
         return self.targets[0][0].fn  # type: ignore

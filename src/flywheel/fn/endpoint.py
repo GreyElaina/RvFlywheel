@@ -58,7 +58,7 @@ class FnCollectEndpointAgent(Generic[P, CnQ, A, B]):
         return receiver
 
     def select(self: FnCollectEndpointAgent[..., C, Any, Any], expect_complete: bool = True) -> Candidates[C]:
-        return Candidates(self.endpoint, expect_complete)
+        return self.endpoint.select(expect_complete)
 
 
 @dataclass(init=False, eq=True, unsafe_hash=True)
@@ -101,7 +101,7 @@ class FnCollectEndpoint(Generic[P, CnQ]):
             entity.add_target(self, self.target(*args, **kwargs))
             return entity
 
-        return receiver
+        return receiver  # type: ignore
 
     def select(self: FnCollectEndpoint[..., C], expect_complete: bool = True) -> Candidates[C]:
         return Candidates(self, expect_complete)

@@ -4,6 +4,7 @@ from collections import ChainMap
 from contextlib import contextmanager
 from typing import TYPE_CHECKING, Any, Mapping, MutableMapping
 
+from .globals import cvar
 from .typing import TEntity
 
 if TYPE_CHECKING:
@@ -23,21 +24,15 @@ class CollectContext:
     def collect_scope(self):
         from .globals import COLLECTING_CONTEXT_VAR
 
-        token = COLLECTING_CONTEXT_VAR.set(self)
-        try:
+        with cvar(COLLECTING_CONTEXT_VAR, self):
             yield self
-        finally:
-            COLLECTING_CONTEXT_VAR.reset(token)
 
     @contextmanager
     def lookup_scope(self):
         from .globals import LOOKUP_LAYOUT_VAR
 
-        token = LOOKUP_LAYOUT_VAR.set((self, *LOOKUP_LAYOUT_VAR.get()))
-        try:
+        with cvar(LOOKUP_LAYOUT_VAR, (self, *LOOKUP_LAYOUT_VAR.get())):
             yield self
-        finally:
-            LOOKUP_LAYOUT_VAR.reset(token)
 
 
 class InstanceContext:
@@ -64,8 +59,5 @@ class InstanceContext:
             with res.scope(inherit=False):
                 yield self
         else:
-            token = INSTANCE_CONTEXT_VAR.set(self)
-            try:
+            with cvar(INSTANCE_CONTEXT_VAR, self):
                 yield self
-            finally:
-                INSTANCE_CONTEXT_VAR.reset(token)

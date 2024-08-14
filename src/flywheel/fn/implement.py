@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, Any, Generic
 
 from ..context import CollectContext
 from ..entity import BaseEntity
-from ..globals import COLLECTING_IMPLEMENT_ENTITY
+from ..globals import COLLECTING_IMPLEMENT_ENTITY, COLLECTING_TARGET_RECORD, cvar
 from ..typing import CR, P
 from .record import FnRecord
 
@@ -26,8 +26,7 @@ class FnImplementEntity(Generic[CR], BaseEntity):
     def collect(self, collector: CollectContext):
         super().collect(collector)
 
-        token = COLLECTING_IMPLEMENT_ENTITY.set(self)
-        try:
+        with cvar(COLLECTING_IMPLEMENT_ENTITY, self):
             for endpoint, generator in self.targets:
                 record_signature = endpoint.signature
 
@@ -36,12 +35,11 @@ class FnImplementEntity(Generic[CR], BaseEntity):
                 else:
                     record = collector.fn_implements[record_signature] = FnRecord()
 
-                for signal in generator:
-                    signal.overload.lay(record, signal.value, self.impl)
+                with cvar(COLLECTING_TARGET_RECORD, record):
+                    for signal in generator:
+                        signal.overload.lay(record, signal.value, self.impl)
 
-            return self
-        finally:
-            COLLECTING_IMPLEMENT_ENTITY.reset(token)
+        return self
 
     def _call(self, *args, **kwargs):
         return self.impl(*args, **kwargs)

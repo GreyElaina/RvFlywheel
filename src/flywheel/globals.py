@@ -7,16 +7,18 @@ from contextvars import ContextVar, copy_context
 from typing import TYPE_CHECKING, Any, Callable, Generator, Tuple
 
 from .context import CollectContext, InstanceContext
-from .typing import P, R, TEntity
+from .typing import P, R, T, TEntity
 
 if TYPE_CHECKING:
     from .fn.implement import FnImplementEntity
+    from .fn.record import FnRecord
 
 GLOBAL_COLLECT_CONTEXT = CollectContext()
 GLOBAL_INSTANCE_CONTEXT = InstanceContext()
 
 COLLECTING_CONTEXT_VAR = ContextVar("CollectingContext", default=GLOBAL_COLLECT_CONTEXT)
 COLLECTING_IMPLEMENT_ENTITY: ContextVar[FnImplementEntity] = ContextVar("CollectingImplementEntity")
+COLLECTING_TARGET_RECORD: ContextVar[FnRecord] = ContextVar("CollectingTargetRecord")
 LOOKUP_LAYOUT_VAR = ContextVar[Tuple[CollectContext, ...]]("LookupContext", default=(GLOBAL_COLLECT_CONTEXT,))
 INSTANCE_CONTEXT_VAR = ContextVar("InstanceContext", default=GLOBAL_INSTANCE_CONTEXT)
 
@@ -70,3 +72,12 @@ def union_scope(*contexts: CollectContext):
         yield
     finally:
         LOOKUP_LAYOUT_VAR.reset(token)
+
+
+@contextmanager
+def cvar(var: ContextVar[T], val: T):
+    token = var.set(val)
+    try:
+        yield val
+    finally:
+        var.reset(token)

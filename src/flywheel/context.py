@@ -34,6 +34,11 @@ class CollectContext:
         with cvar(LOOKUP_LAYOUT_VAR, (self, *LOOKUP_LAYOUT_VAR.get())):
             yield self
 
+    @contextmanager
+    def scope(self):
+        with self.collect_scope(), self.lookup_scope():
+            yield self
+
 
 class InstanceContext:
     instances: MutableMapping[type, Any]

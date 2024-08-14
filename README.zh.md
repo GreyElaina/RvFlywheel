@@ -28,8 +28,13 @@ class greet:
 
     @classmethod
     def call(cls, name: str) -> str:
-        entities = cls.someone.get_control().use(cls.name, name)
-        return entities.first(name)
+        for selection in self.someone.select():
+            if not selection.harvest(self.name, name):
+                continue
+
+            selection.complete()
+        
+        return selection(name)
 
     @FnCollectEndpoint
     @classmethod
@@ -87,12 +92,16 @@ class greet:
 
     @classmethod
     def call(cls, name: str) -> str:
-        entities = cls.someone.get_control().use(cls.name, name)
+        for selection in cls.collect.select(False):
+            if not selection.harvest(cls.name, name):
+                continue
+
+            selection.complete()
 
         if not entities:  # 判断是否存在符合条件的实现
             return f"Ordinary, {name}."
 
-        return entities.first(name)
+        return selection(name)
 ```
 
 这种方法可以提供一种极其灵活的默认实现机制：于是现在我们可以调用 `greet` 了。
@@ -225,6 +234,12 @@ with local_cx.collect_scope():
 with local_cx.lookup_scope():
     # ...现在没问题啦！
     ...
+
+# 或者有时你全部要？
+
+with local_cx.scope():
+    # 好的，只是这可能导致不在预期中对 local_cx 的写入。
+    ...
 ```
 
 需要注意的是，`global_collect` 函数的行为并不会因为上下文的存在而改变，为此，你需要考虑使用 `local_collect` 来将实现收集到你的上下文中。
@@ -249,6 +264,11 @@ def greet_grey(name: str) -> str:
 除非你确定你的实现会因为你应用中蕴含的某种上下文而有必要发生改变（比如 Avilla 需要根据上下文中采用的协议实现切换）。
 
 ## scoped_collect
+
+::: warning
+`scoped_collect` 可能会在未来的版本中被移除 —— 毕竟处理实例的各种情况实在是太麻烦。但我现在没有太好的办法。
+:::
+
 
 如果你希望你的模块保持命名空间的整洁，采用 `scoped_collect` 或许是不错的主意。只是他还有其他更重要的应用，且听我娓娓道来。
 

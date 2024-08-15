@@ -33,8 +33,6 @@ class greet():
         return shape
 
 
-
-
 @global_collect
 @greet.collect(name="Teague")
 @greet.collect(name="Grey")

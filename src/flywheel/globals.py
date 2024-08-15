@@ -1,12 +1,11 @@
 from __future__ import annotations
 
-import functools
 from contextlib import contextmanager
-from contextvars import ContextVar, copy_context
-from typing import TYPE_CHECKING, Callable, Tuple
+from contextvars import ContextVar
+from typing import TYPE_CHECKING, Tuple
 
 from .context import CollectContext, InstanceContext
-from .typing import P, R, TEntity
+from .typing import TEntity
 
 if TYPE_CHECKING:
     from .fn.endpoint import FnCollectEndpoint

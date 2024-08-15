@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from flywheel.context import InstanceContext
+from flywheel.context import CollectContext, InstanceContext
 from flywheel.fn.endpoint import FnCollectEndpoint
-from flywheel.globals import global_collect
+from flywheel.globals import global_collect, local_collect
 from flywheel.overloads import SimpleOverload
 from typing_extensions import reveal_type
 
@@ -17,8 +17,8 @@ class greet():
                 continue
 
             selection.complete()
-
-        if not selection:
+            break
+        else:
             return f"Ordinary, {name}."
 
         return selection(name)
@@ -44,9 +44,18 @@ def greet_someone(name: str) -> str:
 
 reveal_type(greet_someone)
 
-with InstanceContext().scope() as ins:
+with InstanceContext().scope() as ins, CollectContext().scope() as cs:
     ins.instances[str] = "test"
 
-    print(greet.call("Teague"))
+    @local_collect
+    @greet.collect(name="Grey")
+    def greey_grey(name: str) -> str:
+        print("1111", greet.call(name))
+        return "Grey"
+    
+    print(cs.fn_implements)    
+
+    #print(greet.call("Teague"))
     print(greet.call("Grey"))
-    print(greet.call("Hizuki"))
+    #print(greet.call("Hizuki"))
+

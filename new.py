@@ -68,7 +68,7 @@ class test1(m := scoped_collect.locals().target, static=True):
         return 2
 
 with test1.collector.lookup_scope():
-    print([i.fn_implements for i in iter_layout()])
+    #print([i.fn_implements for i in iter_layout()])
     
     a = test().call(int)
     b = test().call(str)

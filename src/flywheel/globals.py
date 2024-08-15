@@ -1,17 +1,18 @@
 from __future__ import annotations
 
 import functools
-from collections import defaultdict
 from contextlib import contextmanager
 from contextvars import ContextVar, copy_context
-from typing import TYPE_CHECKING, Any, Callable, Generator, Tuple
+from typing import TYPE_CHECKING, Callable, Tuple
 
 from .context import CollectContext, InstanceContext
 from .typing import P, R, TEntity
 
 if TYPE_CHECKING:
+    from .fn.endpoint import FnCollectEndpoint
     from .fn.implement import FnImplementEntity
     from .fn.record import FnRecord
+
 
 GLOBAL_COLLECT_CONTEXT = CollectContext()
 GLOBAL_INSTANCE_CONTEXT = InstanceContext()
@@ -22,38 +23,15 @@ COLLECTING_TARGET_RECORD: ContextVar[FnRecord] = ContextVar("CollectingTargetRec
 LOOKUP_LAYOUT_VAR = ContextVar[Tuple[CollectContext, ...]]("LookupContext", default=(GLOBAL_COLLECT_CONTEXT,))
 INSTANCE_CONTEXT_VAR = ContextVar("InstanceContext", default=GLOBAL_INSTANCE_CONTEXT)
 
-ITER_BUCKET_VAR: ContextVar[defaultdict[Any, list[int]]] = ContextVar("LAYOUT_ITER_COLLECTIONS")
+CALLER_TOKENS: ContextVar[dict[FnCollectEndpoint, int]] = ContextVar("CallerTokens", default={})
 
 
-def _standalone_context(func: Callable[P, R]) -> Callable[P, R]:
-    @functools.wraps(func)
-    def wrapper(*args: P.args, **kwargs: P.kwargs) -> R:
-        return copy_context().run(func, *args, **kwargs)
-
-    return wrapper
-
-
-@_standalone_context
-def iter_layout(session_id: Any | None = None) -> Generator[CollectContext, None, None]:
-    bucket = ITER_BUCKET_VAR.get(None)
-    if bucket is None:
-        bucket = defaultdict(lambda: [-1])
-        ITER_BUCKET_VAR.set(bucket)
-
-    stack = bucket[session_id]
-
+def iter_layout(endpoint: FnCollectEndpoint):
+    index = CALLER_TOKENS.get().get(endpoint, -1)
     contexts = LOOKUP_LAYOUT_VAR.get()
-    index = stack[-1]
-    stack.append(index)
 
-    try:
-        for content in contexts[index + 1 :]:
-            stack[-1] += 1
-            yield content
-    finally:
-        stack.pop()
-        if not stack:
-            bucket.pop(session_id, None)
+    for layer in contexts[index + 1 :]:
+        yield layer
 
 
 def global_collect(entity: TEntity) -> TEntity:

@@ -43,7 +43,7 @@ class FnImplementEntity(Generic[CR], BaseEntity):
 
     def __call__(self: FnImplementEntity[Callable[P, R]], *args: P.args, **kwargs: P.kwargs):
         return self.impl(*args, **kwargs)
-    
+
     @property
     def super(self) -> CR:
         return self.targets[0][0].fn  # type: ignore

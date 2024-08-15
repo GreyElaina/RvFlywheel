@@ -1,9 +1,10 @@
 from __future__ import annotations
 
+import functools
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, Callable, Generic, Iterator
 
-from flywheel.globals import iter_layout
+from flywheel.globals import CALLER_TOKENS, iter_layout
 
 from ..typing import C, P, R
 
@@ -24,12 +25,11 @@ class Candidates(Generic[C]):
         last_selection = None
         try:
             for layer in iter_layout(self.endpoint):
-                if last_selection is not None and last_selection.completed:
-                    break
-
                 if sig in layer.fn_implements:
-                    last_selection = Selection(layer.fn_implements[sig])
+                    last_selection = Selection(layer.fn_implements[sig], self.endpoint)
                     yield last_selection
+                    if last_selection.completed:
+                        break
         finally:
             if self.expect_complete and (last_selection is None or not last_selection.completed):
                 raise NotImplementedError("cannot lookup any implementation with given arguments")
@@ -38,6 +38,7 @@ class Candidates(Generic[C]):
 @dataclass
 class Selection(Generic[C]):
     record: FnRecord
+    endpoint: FnCollectEndpoint[..., C]
     result: dict[C, None] | None = None
     completed: bool = False
 
@@ -55,14 +56,32 @@ class Selection(Generic[C]):
     def complete(self):
         self.completed = True
 
+    def _wraps(self, raw: C) -> C:
+        @functools.wraps(raw)
+        def wrapper(*args, **kwargs):
+            tokens = CALLER_TOKENS.get()
+            current_index = tokens.get(self.endpoint, -1)
+            _tok = CALLER_TOKENS.set({**tokens, self.endpoint: current_index + 1})
+
+            try:
+                return raw(*args, **kwargs)
+            finally:
+                CALLER_TOKENS.reset(_tok)
+
+        return wrapper  # type: ignore
+
     def __iter__(self):
         if self.result is None:
             raise NotImplementedError("cannot lookup any implementation with given arguments")
 
-        return iter(self.result)
+        for raw in self.result:
+            yield self._wraps(raw)
 
     def __call__(self: Selection[Callable[P, R]], *args: P.args, **kwargs: P.kwargs) -> R:
-        return next(iter(self))(*args, **kwargs)
+        for i in self:
+            return i(*args, **kwargs)
+
+        raise NotImplementedError("cannot lookup any implementation with given arguments")
 
     def __bool__(self):
         return bool(self.result)

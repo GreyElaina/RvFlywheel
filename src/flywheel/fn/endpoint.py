@@ -8,7 +8,7 @@ from typing_extensions import Concatenate, Self
 from ..typing import CQ, K1, P1, P2, C, CnQ, CnR, P, R, T
 from .implement import FnImplementEntity
 from .record import CollectSignal, FnRecordLabel
-from .selection import Candidates
+from .selection import Candidates, Selection
 
 CollectEndpointTarget = Generator[CollectSignal, None, T]
 
@@ -79,10 +79,7 @@ class FnCollectEndpoint(Generic[P, CnQ]):
         return FnRecordLabel(self)
 
     @overload
-    def __get__(self, instance: FnCollectEndpointAgent, owner: Any) -> Self: ...
-
-    @overload
-    def __get__(self, instance: Candidates, owner: Any) -> Self: ...
+    def __get__(self, instance: FnCollectEndpointAgent | Candidates | Selection, owner: Any) -> Self: ...
 
     @overload
     def __get__(self, instance: A, owner: type[B]) -> FnCollectEndpointAgent[P, CnQ, A, type[B]]: ...

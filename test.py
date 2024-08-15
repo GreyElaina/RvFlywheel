@@ -58,7 +58,7 @@ from viztracer import VizTracer
 tracer = VizTracer()
 tracer.start()
 
-num = 100000
+num = 3000
 delta_a = timeit.timeit("test_impl_str('11')", globals=globals(), number=num)
 delta_b = timeit.timeit("test().call(str)", globals=globals(), number=num)
 

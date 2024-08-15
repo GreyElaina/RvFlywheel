@@ -8,9 +8,6 @@ if TYPE_CHECKING:
     from .overload import FnOverload
 
 
-# layout: FnImplement -> {FnCollectEndpoint -> FnRecord}
-
-
 @dataclass(eq=True, frozen=True)
 class FnRecordLabel:
     endpoint: FnCollectEndpoint

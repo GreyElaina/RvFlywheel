@@ -25,42 +25,6 @@ class EndpointCollectReceiver(Protocol[CnR]):
     def __call__(self: EndpointCollectReceiver[C], entity: C) -> FnImplementEntity[C]: ...
 
 
-class FnCollectEndpointAgent(Generic[P, CnQ, A, B]):
-    endpoint: FnCollectEndpoint[P, CnQ]
-    referrer_instance: A
-    referrer_owner: type[B]
-
-    def __init__(self, endpoint: FnCollectEndpoint[P, CnQ], referrer_instance: A, referrer_owner: type[B]):
-        self.endpoint = endpoint
-        self.referrer_instance = referrer_instance
-        self.referrer_owner = referrer_owner
-
-    @overload
-    def __call__(
-        self: FnCollectEndpointAgent[Concatenate[type[K1], P1], CQ, None, type[K1]], *args: P1.args, **kwargs: P1.kwargs
-    ) -> EndpointCollectReceiver[CQ]: ...
-
-    @overload
-    def __call__(
-        self: FnCollectEndpointAgent[Concatenate[K1, P1], CQ, K1, type], *args: P1.args, **kwargs: P1.kwargs
-    ) -> EndpointCollectReceiver[CQ]: ...
-
-    def __call__(self, *args, **kwargs) -> EndpointCollectReceiver:
-        def receiver(entity: C | FnImplementEntity[C]) -> FnImplementEntity[C]:
-            if not isinstance(entity, FnImplementEntity):
-                entity = FnImplementEntity(entity)
-
-            entity.add_target(
-                self.endpoint, self.endpoint.target.__get__(self.referrer_instance, self.referrer_owner)(*args, **kwargs)
-            )
-            return entity
-
-        return receiver
-
-    def select(self: FnCollectEndpointAgent[..., C, Any, Any], expect_complete: bool = True) -> Candidates[C]:
-        return self.endpoint.select(expect_complete)
-
-
 @dataclass(init=False, eq=True, unsafe_hash=True)
 class FnCollectEndpoint(Generic[P, CnQ]):
     target: Callable[P, CollectEndpointTarget]
@@ -114,6 +78,43 @@ class FnCollectDescriptor(Generic[P, CnQ]):
 
     def __call__(self: FnCollectDescriptor[P1, CQ], *args: P1.args, **kwargs: P1.kwargs) -> EndpointCollectReceiver[CQ]:
         return self.endpoint.__call__(*args, **kwargs)
+
+
+class FnCollectEndpointAgent(Generic[P, CnQ, A, B]):
+    endpoint: FnCollectEndpoint[P, CnQ]
+    referrer_instance: A
+    referrer_owner: type[B]
+
+    def __init__(self, endpoint: FnCollectEndpoint[P, CnQ], referrer_instance: A, referrer_owner: type[B]):
+        self.endpoint = endpoint
+        self.referrer_instance = referrer_instance
+        self.referrer_owner = referrer_owner
+
+    @overload
+    def __call__(
+        self: FnCollectEndpointAgent[Concatenate[type[K1], P1], CQ, None, type[K1]], *args: P1.args, **kwargs: P1.kwargs
+    ) -> EndpointCollectReceiver[CQ]: ...
+
+    @overload
+    def __call__(
+        self: FnCollectEndpointAgent[Concatenate[K1, P1], CQ, K1, type], *args: P1.args, **kwargs: P1.kwargs
+    ) -> EndpointCollectReceiver[CQ]: ...
+
+    def __call__(self, *args, **kwargs) -> EndpointCollectReceiver:
+        def receiver(entity: C | FnImplementEntity[C]) -> FnImplementEntity[C]:
+            if not isinstance(entity, FnImplementEntity):
+                entity = FnImplementEntity(entity)
+
+            entity.add_target(
+                self.endpoint, self.endpoint.target.__get__(self.referrer_instance, self.referrer_owner)(*args, **kwargs)
+            )
+            return entity
+
+        return receiver
+
+    def select(self: FnCollectEndpointAgent[..., C, Any, Any], expect_complete: bool = True) -> Candidates[C]:
+        return self.endpoint.select(expect_complete)
+
 
 @overload
 def wrap_endpoint(

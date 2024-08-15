@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from flywheel.context import CollectContext, InstanceContext
-from flywheel.fn.endpoint import FnCollectEndpoint
+from flywheel.fn.endpoint import FnCollectEndpoint, wrap_endpoint
 from flywheel.globals import global_collect, local_collect
 from flywheel.overloads import SimpleOverload
 from typing_extensions import reveal_type
@@ -23,7 +23,7 @@ class greet():
 
         return selection(name)
 
-    @FnCollectEndpoint
+    @wrap_endpoint
     @classmethod
     def collect(cls, *, name: str):
         yield cls.name.hold(name)

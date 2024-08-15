@@ -8,7 +8,7 @@ from typing_extensions import Concatenate, Self
 from ..typing import CQ, K1, P1, P2, C, CnQ, CnR, P, R, T
 from .implement import FnImplementEntity
 from .record import CollectSignal, FnRecordLabel
-from .selection import Candidates, Selection
+from .selection import Candidates
 
 CollectEndpointTarget = Generator[CollectSignal, None, T]
 
@@ -75,20 +75,12 @@ class FnCollectEndpoint(Generic[P, CnQ]):
         self.target = target
 
     @property
+    def descriptor(self):
+        return FnCollectDescriptor(self)
+
+    @property
     def signature(self):
         return FnRecordLabel(self)
-
-    @overload
-    def __get__(self, instance: FnCollectEndpointAgent | Candidates | Selection, owner: Any) -> Self: ...
-
-    @overload
-    def __get__(self, instance: A, owner: type[B]) -> FnCollectEndpointAgent[P, CnQ, A, type[B]]: ...
-
-    def __get__(self, instance, owner):
-        if isinstance(instance, FnCollectEndpointAgent):
-            return self
-
-        return FnCollectEndpointAgent(self, instance, owner)
 
     def __call__(self: FnCollectEndpoint[P1, CQ], *args: P1.args, **kwargs: P1.kwargs) -> EndpointCollectReceiver[CQ]:
         def receiver(entity: C | FnImplementEntity[C]) -> FnImplementEntity[C]:
@@ -102,3 +94,32 @@ class FnCollectEndpoint(Generic[P, CnQ]):
 
     def select(self: FnCollectEndpoint[..., C], expect_complete: bool = True) -> Candidates[C]:
         return Candidates(self, expect_complete)
+
+
+@dataclass
+class FnCollectDescriptor(Generic[P, CnQ]):
+    endpoint: FnCollectEndpoint[P, CnQ]
+
+    @overload
+    def __get__(self, instance: FnCollectEndpointAgent, owner: Any) -> Self: ...
+
+    @overload
+    def __get__(self, instance: A, owner: type[B]) -> FnCollectEndpointAgent[P, CnQ, A, type[B]]: ...
+
+    def __get__(self, instance, owner):
+        if isinstance(instance, FnCollectEndpointAgent):
+            return self
+
+        return FnCollectEndpointAgent(self.endpoint, instance, owner)
+
+    def __call__(self: FnCollectDescriptor[P1, CQ], *args: P1.args, **kwargs: P1.kwargs) -> EndpointCollectReceiver[CQ]:
+        return self.endpoint.__call__(*args, **kwargs)
+
+@overload
+def wrap_endpoint(
+    target: Callable[P1, CollectEndpointTarget[Callable[P2, R]]],
+) -> FnCollectDescriptor[P1, Callable[P2, R]]: ...
+@overload
+def wrap_endpoint(target: Callable[P1, CollectEndpointTarget[Any]]) -> FnCollectDescriptor[P1, Callable]: ...
+def wrap_endpoint(target):
+    return FnCollectEndpoint(target).descriptor

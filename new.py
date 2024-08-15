@@ -2,8 +2,9 @@ from __future__ import annotations
 
 from typing import TypeVar
 
+from flywheel import wrap_endpoint
 from flywheel.fn.endpoint import FnCollectEndpoint
-from flywheel.globals import global_collect, iter_layout
+from flywheel.globals import global_collect
 from flywheel.overloads import SimpleOverload
 from flywheel.scoped import scoped_collect
 from typing_extensions import reveal_type
@@ -13,7 +14,7 @@ T = TypeVar("T")
 class test():
     sim = SimpleOverload("sim")
 
-    @FnCollectEndpoint
+    @wrap_endpoint
     @classmethod
     def normal(cls, type: type[T]):
         yield cls.sim.hold(type)

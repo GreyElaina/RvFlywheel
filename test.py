@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any, TypeVar
 
-from flywheel.fn.endpoint import FnCollectEndpoint
+from flywheel.fn.endpoint import FnCollectEndpoint, wrap_endpoint
 from flywheel.globals import global_collect
 from flywheel.overloads import SimpleOverload, TypeOverload
 
@@ -22,7 +22,7 @@ class test:
 
         return selection(value)
 
-    @FnCollectEndpoint
+    @wrap_endpoint
     @classmethod
     def collect(cls, type: type[T]):
         yield cls.sim.hold(type)

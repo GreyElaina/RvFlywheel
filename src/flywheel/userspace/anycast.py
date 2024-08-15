@@ -17,7 +17,8 @@ class Anycast(Generic[CR]):
         self.endpoint = FnCollectEndpoint(self._prototype_collect)
         self.prototype = prototype
     
-    def _prototype_collect(self):
+    @staticmethod
+    def _prototype_collect():
         yield ANYCAST_OVERLOAD.hold(None)
 
     def __call__(self: Anycast[Callable[P, R]], *args: P.args, **kwargs: P.kwargs) -> R:

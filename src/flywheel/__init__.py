@@ -14,3 +14,5 @@ from .overloads import SimpleOverload as SimpleOverload
 from .overloads import SingletonOverload as SingletonOverload
 from .overloads import TypeOverload as TypeOverload
 from .scoped import scoped_collect as scoped_collect
+from .userspace import Anycast as Anycast
+from .userspace import wrap_anycast as wrap_anycast

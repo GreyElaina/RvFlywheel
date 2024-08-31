@@ -1,6 +1,6 @@
 [project]
 name = "elaina-flywheel"
-version = "0.5.0"
+version = "0.6.0"
 description = ""
 authors = [
     {name = "Elaina", email = "GreyElaina@outlook.com"},
